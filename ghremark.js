@@ -71,6 +71,7 @@ function elementReady(selector) {
 
 // 全局 Observer 注册表，Turbo 导航时统一清理，防止内存泄漏
 var _ghRemarkObservers = [];
+var _ghRemarkIntervals = [];
 
 function registerObserver(observer) {
     _ghRemarkObservers.push(observer);
@@ -80,6 +81,8 @@ function registerObserver(observer) {
 function cleanupAll() {
     _ghRemarkObservers.forEach(function(obs) { obs.disconnect(); });
     _ghRemarkObservers = [];
+    _ghRemarkIntervals.forEach(function(iv) { clearInterval(iv); });
+    _ghRemarkIntervals = [];
     document.querySelectorAll('.github-remarks').forEach(function(el) { el.remove(); });
 }
 
@@ -119,7 +122,7 @@ function getRemark(userToken, username, callback) {
 	webApi.getRemark(userToken, username, function(remark) {
 		if (!remark || remark === "no remark") {
 			// API 不可达时使用 mock 数据展示样式
-			remark = _mockRemarks[username] || "no remark";
+			console.log("[GHRK] mock:", username, _mockRemarks[username] || "miss"); remark = _mockRemarks[username] || "no remark";
 		}
 		callback(remark);
 	});
@@ -218,20 +221,16 @@ function processUserElements(selector, userToken, getUsernameFunc) {
  * Show remark functions, adapted for each page
  */
 function showRemarkInHomepage(userToken) {
-    const debouncedProcess = debounce(() => {
-        // 使用稳定的data-hovercard-type选择器，不依赖类名
+    const processUsers = () => {
         processUserElements('a[data-hovercard-type="user"]', userToken);
-    }, 300);
-    
-    // 监听整个容器的变化，适配动态加载的内容
-    var observer = registerObserver(new MutationObserver(debouncedProcess));
-    observer.observe(document.querySelector('#dashboard, main'), { 
-        childList: true, 
-        subtree: true 
-    });
-    
-    // 首次执行
-    debouncedProcess();
+    };
+    const throttledProcess = debounce(processUsers, 500);
+    var observer = registerObserver(new MutationObserver(throttledProcess));
+    var target = document.querySelector('#dashboard, main') || document.body;
+    observer.observe(target, { childList: true, subtree: true });
+    processUsers();
+    setTimeout(processUsers, 800);
+    setTimeout(processUsers, 2000);
 }
 
 function showRemarkInLeftPannel(userToken) {
@@ -249,59 +248,62 @@ function showRemarkInLeftPannel(userToken) {
 }
 
 function showRemarkInStarsTab(userToken) {
-    const debouncedProcess = debounce(() => {
+    const processUsers = () => {
         processUserElements('h3 a[data-hovercard-type="user"]', userToken);
-    }, 300);
-    
-    var observer = registerObserver(new MutationObserver(debouncedProcess));
+    };
+    const throttledProcess = debounce(processUsers, 500);
+    var observer = registerObserver(new MutationObserver(throttledProcess));
     observer.observe(document.querySelector('main') || document.body, { 
-        childList: true, 
-        subtree: true 
+        childList: true, subtree: true 
     });
-    
-    debouncedProcess();
+    processUsers();
+    setTimeout(processUsers, 800);
+    setTimeout(processUsers, 2000);
 }
 
+
+// 全局 interval 注册表，用于清理
 function showRemarkInFollowersTab(userToken) {
-    const debouncedProcess = debounce(() => {
-        document.querySelectorAll('a[data-hovercard-type="user"]').forEach(el => {
+    var processed = {};
+    var attempts = 0;
+    var maxAttempts = 40;
+
+    function scan() { console.log("[GHRK] scan #" + attempts);
+        attempts++;
+        document.querySelectorAll('a[data-hovercard-type="user"]').forEach(function(el) {
+            var username = getMasterOfPage(el.href); if (!username || processed[username]) return;
             if (el.parentNode.querySelector('.github-remarks') || el.querySelector('.github-remarks')) return;
-            const username = getMasterOfPage(el.href);
-            if (!username) return;
-            getRemark(userToken, username, function (remark) {
+            processed[username] = true;
+            getRemark(userToken, username, function(remark) {
                 if (!remark || remark === 'no remark') return;
-                const remarkEl = generateRemarkSpan('pl-1 github-remarks', userToken, username, remark);
-                el.appendChild(remarkEl);
+                var remarkEl = generateRemarkSpan('pl-1 github-remarks', userToken, username, remark);
+                console.log("[GHRK] append:", username, remark); el.appendChild(remarkEl);
             });
         });
-    }, 300);
-
-    function startObserving(target) {
-        var observer = registerObserver(new MutationObserver(debouncedProcess));
-        observer.observe(target, { childList: true, subtree: true });
-        debouncedProcess();
+        if (attempts >= maxAttempts) {
+            clearInterval(interval);
+            var idx = _ghRemarkIntervals.indexOf(interval);
+            if (idx > -1) _ghRemarkIntervals.splice(idx, 1);
+        }
     }
 
-    var target = document.querySelector('main, #user-profile-frame');
-    if (target) {
-        startObserving(target);
-    } else {
-        elementReady('main, #user-profile-frame').then(startObserving);
-    }
+    var interval = setInterval(scan, 300);
+    _ghRemarkIntervals.push(interval);
+    scan();
 }
 
 function showRemarkInRepoStargazersPage(userToken) {
-    const debouncedProcess = debounce(() => {
+    const processUsers = () => {
         processUserElements('h3 a[data-hovercard-type="user"]', userToken);
-    }, 300);
-    
-    var observer = registerObserver(new MutationObserver(debouncedProcess));
+    };
+    const throttledProcess = debounce(processUsers, 500);
+    var observer = registerObserver(new MutationObserver(throttledProcess));
     observer.observe(document.querySelector('main') || document.body, { 
-        childList: true, 
-        subtree: true 
+        childList: true, subtree: true 
     });
-    
-    debouncedProcess();
+    processUsers();
+    setTimeout(processUsers, 800);
+    setTimeout(processUsers, 2000);
 }
 
 function showRemarkInRepoDetailPage(userToken) {
@@ -333,31 +335,27 @@ function showRemarkInRepoDetailPage(userToken) {
 }
 
 function showRemarkInOrgPeople(userToken){
-    const debouncedProcess = debounce(() => {
+    const processUsers = () => {
         processUserElements('a[data-hovercard-type="user"]', userToken);
-    }, 300);
-    
+    };
+    const debouncedProcess = debounce(processUsers, 300);
     var observer = registerObserver(new MutationObserver(debouncedProcess));
     observer.observe(document.querySelector('main') || document.body, { 
-        childList: true, 
-        subtree: true 
+        childList: true, subtree: true 
     });
-    
-    debouncedProcess();
+    processUsers();
 }
 
 function showRemarkInOrgMembers(userToken){
-    const debouncedProcess = debounce(() => {
+    const processUsers = () => {
         processUserElements('ul.member-listing a[data-hovercard-type="user"]', userToken);
-    }, 300);
-    
+    };
+    const debouncedProcess = debounce(processUsers, 300);
     var observer = registerObserver(new MutationObserver(debouncedProcess));
     observer.observe(document.querySelector('main') || document.body, { 
-        childList: true, 
-        subtree: true 
+        childList: true, subtree: true 
     });
-    
-    debouncedProcess();
+    processUsers();
 }
 
 function changeRemarks(userToken, username, oldValue) {
@@ -413,20 +411,77 @@ function init() {
 	}
 }
 
-// 支持Turbo框架的单页导航，在页面切换时重新初始化
-if (window.Turbo) {
-    document.addEventListener('turbo:load', init);
-} else {
-    // 兼容旧版页面
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', init);
-    } else {
-        init();
-    }
+
+
+// === 统一初始化：单一全局 MutationObserver，不依赖 Turbo 事件 ===
+var _ghRemarkInited = false;
+var _ghRemarkGlobalObserver = null;
+var _ghRemarkScanned = {};
+var _ghRemarkLastScan = 0;
+
+function globalScan(userToken) {
+    var now = Date.now();
+    if (now - _ghRemarkLastScan < 2000) return;
+    _ghRemarkLastScan = now;
+    var tab = getCurrentTab();
+    if (!userToken) return;
+    
+    document.querySelectorAll('a[data-hovercard-type="user"]').forEach(function(el) {
+        var username = getMasterOfPage(el.href);
+        if (!username) { return; }
+        if (el.parentNode && el.parentNode.querySelector('.github-remarks')) { return; }
+        if (el.querySelector('.github-remarks')) { return; }
+        getRemark(userToken, username, function(remark) {
+            if (!remark || remark === 'no remark') return;
+            var cls = (tab === 'following' || tab === 'followers') ? 'pl-1 github-remarks' : 'pl-1 github-remarks';
+            var remarkEl = generateRemarkSpan(cls, userToken, username, remark);
+            if (tab === 'following' || tab === 'followers') {
+                el.appendChild(remarkEl);
+            } else {
+                insertAfter(remarkEl, el);
+            }
+        });
+    });
 }
 
-// 监听Turbo页面替换事件，清理旧的观察者
-document.addEventListener('turbo:before-render', function() {
-    // 清理所有 Observer 和注入的备注元素，避免 DOM 冲突和内存泄漏
-    cleanupAll();
+function globalSetup() { if (_ghRemarkInited) return;
+    _ghRemarkInited = true;
+    
+    var username = getGithubLoginUsername();
+    if (!username || username === '') return;
+    
+    console.log('GithubRemark inject');
+    
+    // 全局 MutationObserver，监听整个 body
+    _ghRemarkGlobalObserver = new MutationObserver(function(muts) { globalScan(username);
+    });
+    _ghRemarkGlobalObserver.observe(document.documentElement, {
+        childList: true, subtree: true
+    });
+    
+    // 首次扫描 + 延迟重试
+    showRemarkInLeftPannel(username);
+    globalScan(username);
+    setTimeout(function() { globalScan(username); }, 500);
+    setTimeout(function() { globalScan(username); }, 1500);
+    setTimeout(function() { globalScan(username); }, 3000);
+}
+
+// 立即执行
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', globalSetup);
+} else {
+    globalSetup();
+}
+
+// Turbo 导航时重置扫描缓存
+document.addEventListener('turbo:before-render', function() { _ghRemarkScanned = {};
+});
+document.addEventListener('turbo:load', function() { _ghRemarkScanned = {};
+    var username = getGithubLoginUsername();
+    if (username) {
+        globalScan(username);
+        setTimeout(function() { globalScan(username); }, 500);
+        setTimeout(function() { globalScan(username); }, 1500);
+    }
 });
