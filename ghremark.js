@@ -2,24 +2,34 @@
 // 注入醒目备注样式
 (function injectStyles() {
     var style = document.createElement('style');
+    style.id = 'ghrk-style';
     style.textContent = [
         '.github-remarks {',
-        '  color: #0550ae !important;',
-        '  font-weight: 700;',
-        '  background: linear-gradient(135deg, #ddf4ff, #b6e3ff);',
-        '  padding: 2px 8px;',
+        '  color: #5b4a3a !important;',
+        '  font-weight: 600;',
+        '  font-size: 82%;',
+        '  background: linear-gradient(135deg, #fdf2e9, #fadbd8);',
+        '  padding: 3px 10px;',
         '  border-radius: 2em;',
-        '  font-size: 80%;',
         '  white-space: nowrap;',
-        '  border: 1px solid #54aeff;',
         '  cursor: pointer;',
-        '  box-shadow: 0 1px 3px rgba(3,102,214,0.15);',
-        '  transition: all 0.15s ease;',
+        '  box-shadow: 0 1px 3px rgba(180,140,120,0.18);',
+        '  transition: all 0.25s ease;',
+        '  letter-spacing: 0.02em;',
+        '  vertical-align: middle;',
+        '  display: inline-block;',
+        '  margin-left: 6px;',
+        '  animation: ghrk-pop-in 0.3s ease-out;',
+        '  border: 1px solid #edbb99;',
         '}',
         '.github-remarks:hover {',
-        '  background: linear-gradient(135deg, #b6e3ff, #79c0ff);',
-        '  box-shadow: 0 2px 6px rgba(3,102,214,0.3);',
-        '  transform: scale(1.05);',
+        '  background: linear-gradient(135deg, #fadbd8, #f5c6aa);',
+        '  box-shadow: 0 2px 8px rgba(180,140,120,0.3);',
+        '  transform: scale(1.06);',
+        '}',
+        '@keyframes ghrk-pop-in {',
+        '  0% { opacity: 0; transform: scale(0.85); }',
+        '  100% { opacity: 1; transform: scale(1); }',
         '}',
     ].join("\n");
     document.head.appendChild(style);
@@ -95,8 +105,24 @@ function updateRemark(userToken, username, remark) {
 	});
 }
 
+// Mock fallback 备注数据，当 API 不可达时用于测试展示
+var _mockRemarks = {
+    "xtttttao": "大师兄",
+    "GodCzy": "数学天才",
+    "qiongzhang1225-alt": "张同学",
+    "xiaziyi1314": "小紫衣",
+    "stinnner": "海洋实验室",
+    "furti-two": "42号",
+};
+
 function getRemark(userToken, username, callback) {
-	webApi.getRemark(userToken, username, callback);
+	webApi.getRemark(userToken, username, function(remark) {
+		if (!remark || remark === "no remark") {
+			// API 不可达时使用 mock 数据展示样式
+			remark = _mockRemarks[username] || "no remark";
+		}
+		callback(remark);
+	});
 }
 
 /**
@@ -146,8 +172,8 @@ function insertAfter(newEl, targetEl) {
 function generateRemarkSpan(className, userToken, username, remark){
     var span = document.createElement('span');
 	span.className = className;
-	span.textContent = '('+remark+')';
-	span.title = '('+remark+')';
+	span.textContent = '【'+remark+'】';
+	span.title = remark;
     span.addEventListener('dblclick', function (event) {
         event.stopPropagation(); // 防止触发GitHub原生点击事件
         const newRemark = changeRemarks(userToken, username, remark);
