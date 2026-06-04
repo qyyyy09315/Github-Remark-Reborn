@@ -164,42 +164,68 @@ function insertAfter(newEl, targetEl) {
 }
 
 function generateRemarkSpan(className, userToken, username, remark) {
-    var span = document.createElement('span');
-    span.className = className;
-    span.textContent = remark;
-    span.title = '双击编辑备注';
-    span.setAttribute('data-ghrk-user', username);
-    span.addEventListener('dblclick', function(e) {
-        e.stopPropagation(); e.preventDefault();
-        startInlineEdit(span, userToken, username, remark);
-    });
-    return span;
-}
-
-function startInlineEdit(span, userToken, username, oldRemark) {
-    if (span.querySelector('.ghrk-edit-input')) return;
     var wrap = document.createElement('span');
-    wrap.style.cssText = 'display:inline-flex;align-items:center;gap:3px;';
+    wrap.className = className;
+    wrap.style.position = 'relative';
+    wrap.setAttribute('data-ghrk-user', username);
+
+    var label = document.createElement('span');
+    label.textContent = remark;
+    label.style.verticalAlign = 'middle';
+    wrap.appendChild(label);
+
+    var tools = document.createElement('span');
+    tools.className = 'ghrk-tools';
+    tools.innerHTML = '<button class="ghrk-btn-edit" title="编辑">✎</button><button class="ghrk-btn-del" title="删除">✕</button>';
+    wrap.appendChild(tools);
+
+    tools.querySelector('.ghrk-btn-edit').addEventListener('click', function(e) {
+        e.stopPropagation(); e.preventDefault();
+        startInlineEdit(wrap, label, userToken, username, remark);
+    });
+    tools.querySelector('.ghrk-btn-del').addEventListener('click', function(e) {
+        e.stopPropagation(); e.preventDefault();
+        delete _mockRemarks[username];
+        try { localStorage.removeItem('ghrk_' + username); } catch(ex) {}
+        saveMockRemarks();
+        wrap.remove();
+    });
+
+    return wrap;
+}
+function startInlineEdit(wrap, label, userToken, username, oldRemark) {
+    if (wrap.querySelector('.ghrk-edit-input')) return;
+    var tools = wrap.querySelector('.ghrk-tools');
+    tools.style.display = 'none';
+    label.style.display = 'none';
+
+    var row = document.createElement('span');
+    row.style.cssText = 'display:inline-flex;align-items:center;gap:3px;';
     var inp = document.createElement('input');
     inp.type = 'text'; inp.className = 'ghrk-edit-input'; inp.value = oldRemark;
     var ok = document.createElement('button');
     ok.className = 'ghrk-btn'; ok.textContent = 'OK';
     var cx = document.createElement('button');
     cx.className = 'ghrk-btn ghrk-btn-remove'; cx.textContent = 'X';
-    var rm = document.createElement('button');
-    rm.className = 'ghrk-btn ghrk-btn-remove'; rm.textContent = 'Del'; rm.title = '删除备注';
-    wrap.append(inp, ok, cx, rm);
+    row.append(inp, ok, cx);
+    wrap.appendChild(row);
 
     function save() {
         var v = inp.value.trim();
-        if (!v || v === oldRemark) { cancel(); return; }
+        if (!v) { remove(); return; }
+        if (v === oldRemark) { cancel(); return; }
         _mockRemarks[username] = v;
         try { localStorage.setItem('ghrk_' + username, v); } catch(e) {}
         saveMockRemarks();
         updateRemark(userToken, username, v);
-        wrap.replaceWith(generateRemarkSpan(span.className, userToken, username, v));
+        label.textContent = v;
+        cancel();
     }
-    function cancel() { wrap.replaceWith(span); }
+    function cancel() {
+        row.remove();
+        label.style.display = '';
+        tools.style.display = '';
+    }
     function remove() {
         delete _mockRemarks[username];
         try { localStorage.removeItem('ghrk_' + username); } catch(e) {}
@@ -207,13 +233,13 @@ function startInlineEdit(span, userToken, username, oldRemark) {
     }
     ok.onclick = function(e) { e.stopPropagation(); save(); };
     cx.onclick = function(e) { e.stopPropagation(); cancel(); };
-    rm.onclick = function(e) { e.stopPropagation(); remove(); };
-    inp.onkeydown = function(e) { if (e.key==='Enter') { e.stopPropagation(); save(); } if (e.key==='Escape') { e.stopPropagation(); cancel(); } };
+    inp.onkeydown = function(e) {
+        if (e.key === 'Enter') { e.stopPropagation(); save(); }
+        if (e.key === 'Escape') { e.stopPropagation(); cancel(); }
+    };
     inp.onclick = function(e) { e.stopPropagation(); };
-    span.replaceWith(wrap);
     setTimeout(function() { inp.focus(); inp.select(); }, 50);
 }
-
 function clearRemarkOfCurrentNode(div) {
     var r = div.querySelector('.github-remarks');
     if (r) r.remove();
