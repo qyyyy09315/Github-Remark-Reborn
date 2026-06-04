@@ -71,6 +71,32 @@
         '  0% { opacity: 0; transform: scale(0.8) translateY(4px); }',
         '  100% { opacity: 1; transform: scale(1) translateY(0); }',
         '}',
+        '.ghrk-tools {',
+        '  display: none;',
+        '  vertical-align: middle;',
+        '}',
+        '.github-remarks:hover .ghrk-tools {',
+        '  display: inline-flex;',
+        '  gap: 2px;',
+        '  align-items: center;',
+        '}',
+        '.ghrk-btn-edit {',
+        '  font-size: 65%;',
+        '  padding: 1px 5px;',
+        '  border-radius: 1em;',
+        '  border: 1px solid #60a5fa;',
+        '  background: #dbeafe;',
+        '  color: #2563eb;',
+        '  cursor: pointer;',
+        '  line-height: 1;',
+        '  font-weight: 600;',
+        '  opacity: 0.85;',
+        '  transition: opacity 0.15s;',
+        '}',
+        '.ghrk-btn-edit:hover {',
+        '  opacity: 1;',
+        '  background: #bfdbfe;',
+        '}',
     ].join('\n');
     document.head.appendChild(style);
 })();
@@ -102,7 +128,7 @@ function cleanupAll() {
 
 function updateRemark(userToken, username, remark) {
     webApi.updateRemark(userToken, username, remark, function(success) {
-        if (!success) alert('更新失败！');
+        // API offline, local save already done
     });
 }
 
@@ -132,7 +158,7 @@ function getRemark(userToken, username, callback) {
             if (!remark) {
                 try { remark = localStorage.getItem('ghrk_' + username); if (remark) _mockRemarks[username] = remark; } catch(e) {}
             }
-            remark = remark || 'no remark';
+            remark = remark || '未命名';
         }
         callback(remark);
     });
@@ -164,72 +190,71 @@ function insertAfter(newEl, targetEl) {
 }
 
 function generateRemarkSpan(className, userToken, username, remark) {
-    var span = document.createElement('span');
-    span.className = className;
-    span.textContent = remark;
-    span.title = '双击编辑备注';
-    span.setAttribute('data-ghrk-user', username);
-    span.addEventListener('dblclick', function(e) {
-        e.stopPropagation(); e.preventDefault();
-        startInlineEdit(span, userToken, username, remark);
-    });
-    return span;
-}
-
-function startInlineEdit(span, userToken, username, oldRemark) {
-    if (span.querySelector('.ghrk-edit-input')) return;
     var wrap = document.createElement('span');
-    wrap.style.cssText = 'display:inline-flex;align-items:center;gap:3px;';
+    wrap.className = className;
+    wrap.style.position = 'relative';
+    wrap.addEventListener('click', function(e) { e.stopPropagation(); e.preventDefault(); });
+    wrap.setAttribute('data-ghrk-user', username);
+
+    var label = document.createElement('span');
+    label.textContent = remark;
+    label.style.verticalAlign = 'middle';
+    wrap.appendChild(label);
+
+    var tools = document.createElement('span');
+    tools.className = 'ghrk-tools';
+    tools.innerHTML = '<button class="ghrk-btn-edit" title="编辑">✎</button>';
+    wrap.appendChild(tools);
+
+    tools.querySelector('.ghrk-btn-edit').addEventListener('click', function(e) {
+        e.stopPropagation(); e.preventDefault();
+        startInlineEdit(wrap, label, userToken, username, remark);
+    });
+
+    return wrap;
+}
+function startInlineEdit(wrap, label, userToken, username, oldRemark) {
+    if (wrap.querySelector('.ghrk-popup')) return;
+    var tools = wrap.querySelector('.ghrk-tools');
+    tools.style.display = 'none';
+
+    var popup = document.createElement('span');
+    popup.className = 'ghrk-popup';
     var inp = document.createElement('input');
-    inp.type = 'text'; inp.className = 'ghrk-edit-input'; inp.value = oldRemark;
+    inp.type = 'text'; inp.value = oldRemark;
     var ok = document.createElement('button');
-    ok.className = 'ghrk-btn'; ok.textContent = 'OK';
+    ok.className = 'ghrk-popup-save'; ok.textContent = '保存';
     var cx = document.createElement('button');
-    cx.className = 'ghrk-btn ghrk-btn-remove'; cx.textContent = 'X';
-    var rm = document.createElement('button');
-    rm.className = 'ghrk-btn ghrk-btn-remove'; rm.textContent = 'Del'; rm.title = '删除备注';
-    wrap.append(inp, ok, cx, rm);
+    cx.textContent = '取消';
+    popup.append(inp, ok, cx);
+    wrap.appendChild(popup);
 
     function save() {
         var v = inp.value.trim();
-        if (!v || v === oldRemark) { cancel(); return; }
+        if (!v) v = '未命名';
+        if (v === oldRemark) { cancel(); return; }
         _mockRemarks[username] = v;
         try { localStorage.setItem('ghrk_' + username, v); } catch(e) {}
         saveMockRemarks();
         updateRemark(userToken, username, v);
-        wrap.replaceWith(generateRemarkSpan(span.className, userToken, username, v));
+        label.textContent = v;
+        cancel();
     }
-    function cancel() { wrap.replaceWith(span); }
-    function remove() {
-        delete _mockRemarks[username];
-        try { localStorage.removeItem('ghrk_' + username); } catch(e) {}
-        saveMockRemarks(); wrap.remove();
+    function cancel() {
+        popup.remove();
+        tools.style.display = '';
     }
-    ok.onclick = function(e) { e.stopPropagation(); save(); };
-    cx.onclick = function(e) { e.stopPropagation(); cancel(); };
-    rm.onclick = function(e) { e.stopPropagation(); remove(); };
-    inp.onkeydown = function(e) { if (e.key==='Enter') { e.stopPropagation(); save(); } if (e.key==='Escape') { e.stopPropagation(); cancel(); } };
-    inp.onclick = function(e) { e.stopPropagation(); };
-    span.replaceWith(wrap);
+    ok.addEventListener('click', function(e) { e.stopPropagation(); save(); });
+    cx.addEventListener('click', function(e) { e.stopPropagation(); cancel(); });
+    inp.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') { e.stopPropagation(); save(); }
+        if (e.key === 'Escape') { e.stopPropagation(); cancel(); }
+    });
+    inp.addEventListener('click', function(e) { e.stopPropagation(); });
+    popup.addEventListener('click', function(e) { e.stopPropagation(); });
     setTimeout(function() { inp.focus(); inp.select(); }, 50);
 }
 
-function clearRemarkOfCurrentNode(div) {
-    var r = div.querySelector('.github-remarks');
-    if (r) r.remove();
-}
-
-function showRemarkInLeftPannel(userToken) {
-    elementReady('h1[class*="vcard"] .vcard-username, .ProfileHeader-name + span, [data-testid="profile-login"], .js-profile-editable-username').then(function(el) {
-        if (!el) return;
-        clearRemarkOfCurrentNode(el.parentNode);
-        var uname = getMasterOfPage(location.href);
-        getRemark(userToken, uname, function(remark) {
-            if (!remark || remark === 'no remark') return;
-            el.parentNode.appendChild(generateRemarkSpan('d-inline-block ml-2 github-remarks', userToken, uname, remark));
-        });
-    });
-}
 
 var _ghRemarkInited = false;
 var _ghRemarkGlobalObserver = null;
@@ -264,7 +289,6 @@ function globalSetup() {
     console.log('GithubRemark inject');
     _ghRemarkGlobalObserver = new MutationObserver(function() { globalScan(uname); });
     _ghRemarkGlobalObserver.observe(document.documentElement, { childList: true, subtree: true });
-    showRemarkInLeftPannel(uname);
     globalScan(uname);
     setTimeout(function() { globalScan(uname); }, 500);
     setTimeout(function() { globalScan(uname); }, 1500);
@@ -282,8 +306,7 @@ document.addEventListener('turbo:load', function() {
     _ghRemarkLastScan = 0;
     var uname = getGithubLoginUsername();
     if (uname) {
-        showRemarkInLeftPannel(uname);
-        globalScan(uname);
+            globalScan(uname);
         setTimeout(function() { globalScan(uname); }, 500);
         setTimeout(function() { globalScan(uname); }, 1500);
     }
