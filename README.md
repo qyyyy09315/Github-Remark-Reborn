@@ -3,7 +3,7 @@
 虽然Github有name和username，但是还缺少像微信那样的备注名功能。此功能的缺失，对于现在二次元化的g友间的沟通和交往十分不利，因此本扩展应运而生～
 
 ## 安装
-[chrome商店](https://chrome.google.com/webstore/detail/githubremark/mfimgdoejnljagjkeeieiidhejnnoicp)  
+开发中...
 
 ## 使用
 1.在图标上单击，选择on则开启功能。  
