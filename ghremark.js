@@ -274,8 +274,7 @@ function globalScan(userToken) {
         getRemark(userToken, uname, function(remark) {
             if (!remark || remark === 'no remark') return;
             var span = generateRemarkSpan('pl-1 github-remarks', userToken, uname, remark);
-            if (tab === 'following' || tab === 'followers') el.appendChild(span);
-            else insertAfter(span, el);
+            insertAfter(span, el);
         });
     });
 }
