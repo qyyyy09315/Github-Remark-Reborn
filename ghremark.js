@@ -1,4 +1,30 @@
 
+// 注入醒目备注样式
+(function injectStyles() {
+    var style = document.createElement('style');
+    style.textContent = [
+        '.github-remarks {',
+        '  color: #0550ae !important;',
+        '  font-weight: 700;',
+        '  background: linear-gradient(135deg, #ddf4ff, #b6e3ff);',
+        '  padding: 2px 8px;',
+        '  border-radius: 2em;',
+        '  font-size: 80%;',
+        '  white-space: nowrap;',
+        '  border: 1px solid #54aeff;',
+        '  cursor: pointer;',
+        '  box-shadow: 0 1px 3px rgba(3,102,214,0.15);',
+        '  transition: all 0.15s ease;',
+        '}',
+        '.github-remarks:hover {',
+        '  background: linear-gradient(135deg, #b6e3ff, #79c0ff);',
+        '  box-shadow: 0 2px 6px rgba(3,102,214,0.3);',
+        '  transform: scale(1.05);',
+        '}',
+    ].join("\n");
+    document.head.appendChild(style);
+})();
+
 function elementReady(selector) {
     return new Promise(function(resolve) {
         var el = document.querySelector(selector);
@@ -29,7 +55,7 @@ function elementReady(selector) {
             if (idx > -1) _ghRemarkObservers.splice(idx, 1);
         }, 10000);
     });
-}
+
 }
 
 
@@ -155,11 +181,12 @@ function processUserElements(selector, userToken, getUsernameFunc) {
         
         getRemark(userToken, username, function (remark) {
             if (!remark || remark === 'no remark') return;
-            const remarkEl = generateRemarkSpan('pl-1 text-muted github-remarks', userToken, username, remark);
+            const remarkEl = generateRemarkSpan('pl-1 github-remarks', userToken, username, remark);
             insertAfter(remarkEl, element);
         });
     });
-}
+
+}
 
 /**
  * Show remark functions, adapted for each page
@@ -171,7 +198,7 @@ function showRemarkInHomepage(userToken) {
     }, 300);
     
     // 监听整个容器的变化，适配动态加载的内容
-    var observer = registerObserver(new MutationObserver(debouncedProcess);
+    var observer = registerObserver(new MutationObserver(debouncedProcess));
     observer.observe(document.querySelector('#dashboard, main'), { 
         childList: true, 
         subtree: true 
@@ -190,7 +217,7 @@ function showRemarkInLeftPannel(userToken) {
         const username = getMasterOfPage(location.href);
         getRemark(userToken, username, function (remark) {
             if (!remark || remark === 'no remark') return;
-            vcard.parentNode.appendChild(generateRemarkSpan('d-inline-block ml-2 text-muted github-remarks', userToken, username, remark));
+            vcard.parentNode.appendChild(generateRemarkSpan('d-inline-block ml-2 github-remarks', userToken, username, remark));
         });
     });
 }
@@ -200,7 +227,7 @@ function showRemarkInStarsTab(userToken) {
         processUserElements('h3 a[data-hovercard-type="user"]', userToken);
     }, 300);
     
-    var observer = registerObserver(new MutationObserver(debouncedProcess);
+    var observer = registerObserver(new MutationObserver(debouncedProcess));
     observer.observe(document.querySelector('main'), { 
         childList: true, 
         subtree: true 
@@ -221,14 +248,14 @@ function showRemarkInFollowersTab(userToken) {
             
             getRemark(userToken, username, function (remark) {
                 if (!remark || remark === 'no remark') return;
-                const remarkEl = generateRemarkSpan('pl-1 text-muted github-remarks', userToken, username, remark);
+                const remarkEl = generateRemarkSpan('pl-1 github-remarks', userToken, username, remark);
                 // 插入到a标签内部的最后，紧跟用户名
                 el.appendChild(remarkEl);
             });
         });
     }, 300);
     
-    var observer = registerObserver(new MutationObserver(debouncedProcess);
+    var observer = registerObserver(new MutationObserver(debouncedProcess));
     observer.observe(document.querySelector('main, #user-profile-frame'), { 
         childList: true, 
         subtree: true 
@@ -242,7 +269,7 @@ function showRemarkInRepoStargazersPage(userToken) {
         processUserElements('h3 a[data-hovercard-type="user"]', userToken);
     }, 300);
     
-    var observer = registerObserver(new MutationObserver(debouncedProcess);
+    var observer = registerObserver(new MutationObserver(debouncedProcess));
     observer.observe(document.querySelector('main'), { 
         childList: true, 
         subtree: true 
@@ -262,7 +289,7 @@ function showRemarkInRepoDetailPage(userToken) {
         const username = getMasterOfPage(location.href);
         getRemark(userToken, username, function (remark) {
             if (!remark || remark === 'no remark') return;
-            const remarkEl = generateRemarkSpan('ml-1 text-muted github-remarks', userToken, username, remark);
+            const remarkEl = generateRemarkSpan('ml-1 github-remarks', userToken, username, remark);
             insertAfter(remarkEl, authorEl);
         });
     });
@@ -284,7 +311,7 @@ function showRemarkInOrgPeople(userToken){
         processUserElements('a[data-hovercard-type="user"]', userToken);
     }, 300);
     
-    var observer = registerObserver(new MutationObserver(debouncedProcess);
+    var observer = registerObserver(new MutationObserver(debouncedProcess));
     observer.observe(document.querySelector('main'), { 
         childList: true, 
         subtree: true 
@@ -298,7 +325,7 @@ function showRemarkInOrgMembers(userToken){
         processUserElements('ul.member-listing a[data-hovercard-type="user"]', userToken);
     }, 300);
     
-    var observer = registerObserver(new MutationObserver(debouncedProcess);
+    var observer = registerObserver(new MutationObserver(debouncedProcess));
     observer.observe(document.querySelector('main'), { 
         childList: true, 
         subtree: true 
