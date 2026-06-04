@@ -8,7 +8,7 @@ var webApi = {
 					if ( xhr.response ) {
 						callback( xhr.response );
 					} else {
-						console.warn( "[" + url + "] seems to be unreachable or file there is empty" );
+						// silently handled by mock fallback
                         // 接口失败降级
                         callback({success: false, data: 'no remark'});
 					}
@@ -22,7 +22,7 @@ var webApi = {
         // 增加超时处理
         xhr.timeout = 3000;
         xhr.ontimeout = function () {
-            console.warn("[" + url + "] request timeout");
+            // silently handled by mock fallback
             callback({success: false, data: 'no remark'});
         };
 		xhr.open( "GET", url, true );
@@ -44,7 +44,7 @@ var webApi = {
         // 增加超时处理
         xhr.timeout = 3000;
         xhr.ontimeout = function () {
-            console.warn("[" + url + "] request timeout");
+            // silently handled by mock fallback
             callback({success: false});
         };
 		xhr.open( "POST", url, true );

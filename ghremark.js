@@ -254,7 +254,7 @@ function showRemarkInStarsTab(userToken) {
     }, 300);
     
     var observer = registerObserver(new MutationObserver(debouncedProcess));
-    observer.observe(document.querySelector('main'), { 
+    observer.observe(document.querySelector('main') || document.body, { 
         childList: true, 
         subtree: true 
     });
@@ -264,30 +264,30 @@ function showRemarkInStarsTab(userToken) {
 
 function showRemarkInFollowersTab(userToken) {
     const debouncedProcess = debounce(() => {
-        // 适配新版关注/粉丝页结构，用户名在.Link--secondary子元素内
         document.querySelectorAll('a[data-hovercard-type="user"]').forEach(el => {
-            // 避免重复注入
             if (el.parentNode.querySelector('.github-remarks') || el.querySelector('.github-remarks')) return;
-            
             const username = getMasterOfPage(el.href);
             if (!username) return;
-            
             getRemark(userToken, username, function (remark) {
                 if (!remark || remark === 'no remark') return;
                 const remarkEl = generateRemarkSpan('pl-1 github-remarks', userToken, username, remark);
-                // 插入到a标签内部的最后，紧跟用户名
                 el.appendChild(remarkEl);
             });
         });
     }, 300);
-    
-    var observer = registerObserver(new MutationObserver(debouncedProcess));
-    observer.observe(document.querySelector('main, #user-profile-frame'), { 
-        childList: true, 
-        subtree: true 
-    });
-    
-    debouncedProcess();
+
+    function startObserving(target) {
+        var observer = registerObserver(new MutationObserver(debouncedProcess));
+        observer.observe(target, { childList: true, subtree: true });
+        debouncedProcess();
+    }
+
+    var target = document.querySelector('main, #user-profile-frame');
+    if (target) {
+        startObserving(target);
+    } else {
+        elementReady('main, #user-profile-frame').then(startObserving);
+    }
 }
 
 function showRemarkInRepoStargazersPage(userToken) {
@@ -296,7 +296,7 @@ function showRemarkInRepoStargazersPage(userToken) {
     }, 300);
     
     var observer = registerObserver(new MutationObserver(debouncedProcess));
-    observer.observe(document.querySelector('main'), { 
+    observer.observe(document.querySelector('main') || document.body, { 
         childList: true, 
         subtree: true 
     });
@@ -338,7 +338,7 @@ function showRemarkInOrgPeople(userToken){
     }, 300);
     
     var observer = registerObserver(new MutationObserver(debouncedProcess));
-    observer.observe(document.querySelector('main'), { 
+    observer.observe(document.querySelector('main') || document.body, { 
         childList: true, 
         subtree: true 
     });
@@ -352,7 +352,7 @@ function showRemarkInOrgMembers(userToken){
     }, 300);
     
     var observer = registerObserver(new MutationObserver(debouncedProcess));
-    observer.observe(document.querySelector('main'), { 
+    observer.observe(document.querySelector('main') || document.body, { 
         childList: true, 
         subtree: true 
     });
