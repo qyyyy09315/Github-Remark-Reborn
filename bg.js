@@ -9,7 +9,8 @@ var GithubRemark = function (initParams) {
 	var _insertFunc = function (tabId, changeInfo, tab) {
 		if (changeInfo.status == 'loading' && !!changeInfo.url) {
 			var urlPattern = new RegExp("(" + _watchUrls.join('|') + ")");
-			if (urlPattern.test(tab.url)) {
+			var targetUrl = changeInfo.url || tab.url;
+            if (urlPattern.test(targetUrl)) {
 				chrome.scripting.executeScript({
 					target: { tabId: tabId },
 					files: ['webapi.js', 'ghremark.js']
