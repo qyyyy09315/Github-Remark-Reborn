@@ -1,6 +1,6 @@
-# GithubRemark 重制版
+# GithubRemarkReborn
 
-> 基于原 [GithubRemark](https://github.com/dpy1123/GithubRemark) 插件的适配重制版，针对新版 GitHub 页面结构和 Turbo 框架做了全量适配，解决了原插件失效问题，并优化了 UI 交互与性能。
+> 基于原 [GithubRemark](https://github.com/dpy1123/GithubRemark) 插件的重制版，参考了 [refined-github](https://github.com/refined-github/refined-github) 的实现思路，针对新版 GitHub 页面结构和 Turbo 框架做了全量适配，并全面优化了 UI 交互与性能。
 
 ## ✨ 功能特性
 
@@ -42,8 +42,9 @@
 
 ## 👨‍💻 作者
 
-- 原作者：[DD](https://github.com/dpy1123)
-- 重制版维护：[qyyyy](https://github.com/qyyyy)
+- 作者：[qyyyy](https://github.com/qyyyy)
+- 原项目：[GithubRemark](https://github.com/dpy1123/GithubRemark) by [DD](https://github.com/dpy1123)
+- 设计参考：[refined-github](https://github.com/refined-github/refined-github)
 
 ## 📌 免责声明
 

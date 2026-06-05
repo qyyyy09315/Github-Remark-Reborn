@@ -1,8 +1,9 @@
 {
   "manifest_version": 3,
-  "name": "GithubRemark",
-  "version": "0.5.6",
+  "name": "GithubRemarkReborn",
+  "version": "0.8.0",
   "description": "给你的Github好友增加备注名吧～",
+  "author": "qyyyy",
   "icons": {
     "128": "images/github_512.png"
   },
