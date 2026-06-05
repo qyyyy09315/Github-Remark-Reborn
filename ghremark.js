@@ -150,58 +150,6 @@
     ].join('\n');
     document.head.appendChild(style);
 })();
-        '  display: none;',
-        '  vertical-align: middle;',
-        '}',
-        '.github-remarks:hover .ghrk-tools {',
-        '  display: inline-flex;',
-        '  gap: 2px;',
-        '  align-items: center;',
-        '}',
-        '.ghrk-edit-mode .ghrk-tools {',
-        '  display: none !important;',
-        '}',
-        '.ghrk-btn-edit,',
-        '.ghrk-btn-delete {',
-        '  font-size: 65%;',
-        '  padding: 1px 5px;',
-        '  border-radius: 1em;',
-        '  cursor: pointer;',
-        '  line-height: 1;',
-        '  font-weight: 600;',
-        '  opacity: 0.8;',
-        '  transition: all 0.15s ease;',
-        '  border: 1px solid transparent;',
-        '  outline: none;',
-        '}',
-        '.ghrk-btn-edit {',
-        '  background: #dbeafe;',
-        '  color: #2563eb;',
-        '  border-color: #93c5fd;',
-        '}',
-        '.ghrk-btn-edit:hover {',
-        '  opacity: 1;',
-        '  background: #bfdbfe;',
-        '}',
-        '.ghrk-btn-delete {',
-        '  background: #fef2f2;',
-        '  color: #ef4444;',
-        '  border-color: #fecaca;',
-        '}',
-        '.ghrk-btn-delete:hover {',
-        '  opacity: 1;',
-        '  background: #fee2e2;',
-        '  border-color: #fca5a5;',
-        '}',
-        '/* ---- animations ---- */',
-        '@keyframes ghrk-pop-in {',
-        '  0% { opacity: 0; transform: scale(0.85) translateY(2px); }',
-        '  100% { opacity: 1; transform: scale(1) translateY(0); }',
-        '}',
-    ].join('\n');
-    document.head.appendChild(style);
-})();
-})();
 
 var _ghRemarkObservers = [];
 var _ghRemarkIntervals = [];
