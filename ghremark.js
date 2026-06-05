@@ -348,17 +348,49 @@ function globalScan(userToken) {
 
 function globalSetup() {
     if (_ghRemarkInited) return;
-    _ghRemarkInited = true;
     loadMockRemarks();
     var uname = getGithubLoginUsername();
-    if (!uname) return;
+    if (!uname) {
+        // GitHub 页面可能还在渲染中，等 meta 标签就绪后重试
+        var retryObserver = new MutationObserver(function() {
+            var u = getGithubLoginUsername();
+            if (u) {
+                retryObserver.disconnect();
+                doInit(u);
+            }
+        });
+        retryObserver.observe(document.documentElement, { childList: true, subtree: true });
+        // 兜底：10秒后无论如何重试一次
+        setTimeout(function() {
+            retryObserver.disconnect();
+            var u = getGithubLoginUsername();
+            if (u && !_ghRemarkInited) doInit(u);
+        }, 10000);
+        return;
+    }
+    doInit(uname);
+}
+
+function doInit(uname) {
+    if (_ghRemarkInited) return;
+    _ghRemarkInited = true;
     console.log('GithubRemark inject');
-    _ghRemarkGlobalObserver = new MutationObserver(function() { globalScan(uname); });
-    _ghRemarkGlobalObserver.observe(document.documentElement, { childList: true, subtree: true });
+    // 首次立即扫描
+    _ghRemarkLastScan = 0;
     globalScan(uname);
-    setTimeout(function() { globalScan(uname); }, 500);
-    setTimeout(function() { globalScan(uname); }, 1500);
-    setTimeout(function() { globalScan(uname); }, 3000);
+    // observer 用 debounce 触发，绕过节流限制
+    var observerTimer = null;
+    _ghRemarkGlobalObserver = new MutationObserver(function() {
+        if (observerTimer) clearTimeout(observerTimer);
+        observerTimer = setTimeout(function() {
+            _ghRemarkLastScan = 0;
+            globalScan(uname);
+        }, 300);
+    });
+    _ghRemarkGlobalObserver.observe(document.documentElement, { childList: true, subtree: true });
+    // 延迟兜底扫描
+    setTimeout(function() { _ghRemarkLastScan = 0; globalScan(uname); }, 2000);
+    setTimeout(function() { _ghRemarkLastScan = 0; globalScan(uname); }, 5000);
 }
 
 if (document.readyState === 'loading') {
