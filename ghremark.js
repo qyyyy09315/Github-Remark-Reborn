@@ -150,6 +150,57 @@
     ].join('\n');
     document.head.appendChild(style);
 })();
+        '  display: none;',
+        '  vertical-align: middle;',
+        '}',
+        '.github-remarks:hover .ghrk-tools {',
+        '  display: inline-flex;',
+        '  gap: 2px;',
+        '  align-items: center;',
+        '}',
+        '.ghrk-edit-mode .ghrk-tools {',
+        '  display: none !important;',
+        '}',
+        '.ghrk-btn-edit,',
+        '.ghrk-btn-delete {',
+        '  font-size: 65%;',
+        '  padding: 1px 5px;',
+        '  border-radius: 1em;',
+        '  cursor: pointer;',
+        '  line-height: 1;',
+        '  font-weight: 600;',
+        '  opacity: 0.8;',
+        '  transition: all 0.15s ease;',
+        '  border: 1px solid transparent;',
+        '  outline: none;',
+        '}',
+        '.ghrk-btn-edit {',
+        '  background: #dbeafe;',
+        '  color: #2563eb;',
+        '  border-color: #93c5fd;',
+        '}',
+        '.ghrk-btn-edit:hover {',
+        '  opacity: 1;',
+        '  background: #bfdbfe;',
+        '}',
+        '.ghrk-btn-delete {',
+        '  background: #fef2f2;',
+        '  color: #ef4444;',
+        '  border-color: #fecaca;',
+        '}',
+        '.ghrk-btn-delete:hover {',
+        '  opacity: 1;',
+        '  background: #fee2e2;',
+        '  border-color: #fca5a5;',
+        '}',
+        '/* ---- animations ---- */',
+        '@keyframes ghrk-pop-in {',
+        '  0% { opacity: 0; transform: scale(0.85) translateY(2px); }',
+        '  100% { opacity: 1; transform: scale(1) translateY(0); }',
+        '}',
+    ].join('\n');
+    document.head.appendChild(style);
+})();
 })();
 
 var _ghRemarkObservers = [];
@@ -248,13 +299,13 @@ function generateRemarkSpan(className, userToken, username, remark) {
     wrap.setAttribute('data-ghrk-user', username);
 
     var label = document.createElement('span');
+    label.className = 'ghrk-label';
     label.textContent = remark;
-    label.style.verticalAlign = 'middle';
     wrap.appendChild(label);
 
     var tools = document.createElement('span');
     tools.className = 'ghrk-tools';
-    tools.innerHTML = '<button class="ghrk-btn-edit" title="编辑">✎</button>';
+    tools.innerHTML = '<button class="ghrk-btn-edit" title="编辑">&#9998;</button><button class="ghrk-btn-delete" title="删除">&#10005;</button>';
     wrap.appendChild(tools);
 
     tools.querySelector('.ghrk-btn-edit').addEventListener('click', function(e) {
@@ -262,23 +313,40 @@ function generateRemarkSpan(className, userToken, username, remark) {
         startInlineEdit(wrap, label, userToken, username, remark);
     });
 
+    tools.querySelector('.ghrk-btn-delete').addEventListener('click', function(e) {
+        e.stopPropagation(); e.preventDefault();
+        if (confirm('确定要删除「' + username + '」的备注吗？')) {
+            _mockRemarks[username] = 'no remark';
+            try { localStorage.removeItem('ghrk_' + username); } catch(e) {}
+            saveMockRemarks();
+            updateRemark(userToken, username, '');
+            wrap.remove();
+        }
+    });
+
     return wrap;
 }
 function startInlineEdit(wrap, label, userToken, username, oldRemark) {
-    if (wrap.querySelector('.ghrk-popup')) return;
+    if (wrap.querySelector('.ghrk-edit-area')) return;
+    wrap.classList.add('ghrk-edit-mode');
     var tools = wrap.querySelector('.ghrk-tools');
-    tools.style.display = 'none';
 
-    var popup = document.createElement('span');
-    popup.className = 'ghrk-popup';
+    var area = document.createElement('span');
+    area.className = 'ghrk-edit-area';
     var inp = document.createElement('input');
-    inp.type = 'text'; inp.value = oldRemark;
+    inp.type = 'text';
+    inp.className = 'ghrk-edit-input';
+    inp.value = oldRemark;
     var ok = document.createElement('button');
-    ok.className = 'ghrk-popup-save'; ok.textContent = '保存';
+    ok.className = 'ghrk-btn-save';
+    ok.innerHTML = '&#10003;';
+    ok.title = '保存';
     var cx = document.createElement('button');
-    cx.textContent = '取消';
-    popup.append(inp, ok, cx);
-    wrap.appendChild(popup);
+    cx.className = 'ghrk-btn-cancel';
+    cx.innerHTML = '&#10005;';
+    cx.title = '取消';
+    area.append(inp, ok, cx);
+    wrap.appendChild(area);
 
     function save() {
         var v = inp.value.trim();
@@ -292,8 +360,8 @@ function startInlineEdit(wrap, label, userToken, username, oldRemark) {
         cancel();
     }
     function cancel() {
-        popup.remove();
-        tools.style.display = '';
+        area.remove();
+        wrap.classList.remove('ghrk-edit-mode');
     }
     ok.addEventListener('click', function(e) { e.stopPropagation(); save(); });
     cx.addEventListener('click', function(e) { e.stopPropagation(); cancel(); });
@@ -302,7 +370,7 @@ function startInlineEdit(wrap, label, userToken, username, oldRemark) {
         if (e.key === 'Escape') { e.stopPropagation(); cancel(); }
     });
     inp.addEventListener('click', function(e) { e.stopPropagation(); });
-    popup.addEventListener('click', function(e) { e.stopPropagation(); });
+    area.addEventListener('click', function(e) { e.stopPropagation(); });
     setTimeout(function() { inp.focus(); inp.select(); }, 50);
 }
 
