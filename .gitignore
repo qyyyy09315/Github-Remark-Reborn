@@ -1,6 +1,10 @@
 # Dependencies
 node_modules/
 
+# Archives
+*.zip
+*.tar.gz
+
 # Local IDE / Tool configs
 .zcode/
 .vscode/

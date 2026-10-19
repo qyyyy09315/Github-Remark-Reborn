@@ -1,76 +1,129 @@
-# GithubRemarkReborn
+<p align="center">
+  <img src="images/github_512.png" width="96" height="96" alt="GithubRemark Logo">
+</p>
 
-> 给你的 GitHub 好友与开发者添加个性化备注，类似微信备注功能。全面适配新版 GitHub 页面结构与 Turbo 单页导航，原生适配浅色与深色（Dark）模式，完美兼容 **Google Chrome** 与 **Microsoft Edge**！
+<h1 align="center">GithubRemarkReborn</h1>
+
+<p align="center">
+  <strong>给你的 GitHub 好友与开发者添加个性化备注，类似微信备注功能</strong><br>
+  全场景识别 · 现代高质感视觉 · 原生跨设备云同步 · 完美兼容 Microsoft Edge & Google Chrome
+</p>
+
+<p align="center">
+  <a href="https://github.com/qyyyy09315/Github-Remark-Reborn/releases/latest"><img src="https://img.shields.io/badge/Release-v1.0.0-blue.svg?style=flat-square" alt="Release"></a>
+  <img src="https://img.shields.io/badge/Manifest-V3-success.svg?style=flat-square" alt="Manifest V3">
+  <img src="https://img.shields.io/badge/Browser-Edge%20%7C%20Chrome-0078d7.svg?style=flat-square" alt="Edge and Chrome">
+  <img src="https://img.shields.io/badge/Sync-chrome.storage.sync-green.svg?style=flat-square" alt="Storage Sync">
+  <a href="https://github.com/qyyyy09315"><img src="https://img.shields.io/badge/Maintainer-@qyyyy09315-blueviolet.svg?style=flat-square" alt="Maintainer"></a>
+  <img src="https://img.shields.io/badge/License-MIT-orange.svg?style=flat-square" alt="License">
+</p>
+
+---
+
+## 💡 为什么需要 GithubRemarkReborn？
+
+在 GitHub 上探索和协作时，许多开发者的 Handle（ID）与昵称常常抽象或容易遗忘。**GithubRemarkReborn** 让你可以像在微信中给好友备注一样，为任意 GitHub 用户打上鲜明、易记的专属标签。
+
+基于原版插件重制，全面适配新版 GitHub 页面架构与 Turbo 单页导航，重构了底层数据流并升级了现代高对比度 UI。
 
 ---
 
 ## ✨ 核心特性
 
-- 🔖 **全场景覆盖与常驻入口**：
-  - **个人主页专属入口**：访问任意用户的 GitHub 主页（Profile），昵称旁常驻大号备注徽章；未备注时显示精致小巧的「+ 添加备注」胶囊按钮，再也不用担心找不到添加入口。
-  - **全站用户链接识别**：Issues 讨论区、Commits 提交记录、Star 列表、Followers 列表、PR 审查人等位置均自动挂载。
-- 🎨 **视觉质感深度优化**：
-  - **深浅色主题自适应**：读取 GitHub 原生主题变量与系统偏好，浅色呈清水晶蓝，深色呈深邃晶体玻璃质感，融入 GitHub Primer 设计语言。
-  - **内嵌高清矢量 SVG 图标**：标签、修改、删除、确定等图标清晰锐利，无外链图片延迟。
-  - **悬停快捷内联编辑**：鼠标悬停备注徽章即可呼出 ✎（编辑）与 ✕（删除），支持键盘 `Enter` 快捷保存、`Esc` 取消。
-- ☁️ **零门槛跨设备云同步（推荐）**：
-  - 原生接入 `chrome.storage.sync`，登录 Chrome 或 Edge 浏览器账号即可在多台电脑间自动秒级同步备注，**无需自行搭建或依赖任何第三方服务器**，零隐私泄露风险。
-  - 多标签页实时联动：在一个页面或控制台修改备注，其他所有已打开的 GitHub 标签页即时同步渲染。
-- 💾 **完整数据备份中心**：
-  - 随时将所有备注一键导出为 `.json` 备份文件。
-  - 支持从 JSON 备份文件一键恢复或合并数据。
-- 🌐 **双浏览器完美兼容**：
-  - 严格遵循 Manifest V3 规范，彻底移除外部 CDN 依赖，完全自包含离线可用，原生兼容 **Microsoft Edge** 与 **Google Chrome**。
+| 特性 | 功能说明 |
+| :--- | :--- |
+| 🏷️ **个人主页常驻入口** | 访问任意用户的个人主页（Profile），昵称旁常驻大号备注徽章；未设置备注时，显示轻巧的「**+ 添加备注**」胶囊，随时为任何人添加第一条备注。 |
+| 📱 **全场景智能识别** | 自动识别并挂载全站用户链接：Following/Followers 关注列表、Issues 讨论区、PR 审查人、Commits 提交记录、Star 列表、组织成员等。 |
+| 🎨 **超清晰高对比度视觉** | 采用沉稳深邃的绀青色加粗文字（`#0c4a6e`，Bold 700）搭配透亮淡天蓝背景，对比度超越 WCAG AAA 标准，彻底杜绝模糊黑晕与字迹发白；自动适配 GitHub 浅色与深色模式。 |
+| ☁️ **原生跨设备免服同步** | 接入 `chrome.storage.sync` 原生引擎。只要登录浏览器账号（Edge 或 Google 账号），即可在多台设备间**自动无感同步**，无需部署服务器，零隐私泄露风险。 |
+| ⚡ **本地优先（Local-First）** | 内存 Map 0 毫秒极速查找，彻底消灭每个用户一次 HTTP 请求的 N+1 网络风暴，页面加载丝滑不卡顿。 |
+| 🔄 **多标签页即时联动** | 跨页面广播机制：在一个标签页或设置面板修改备注，其他所有已打开的 GitHub 页面无需刷新，秒级同步更新。 |
+| 💾 **完整数据备份中心** | 控制面板提供一键导出 `.json` 备份文件，并支持选择 JSON 备份一键恢复与合并。 |
+| 🌐 **Edge & Chrome 双兼容** | 纯自包含原生实现，无任何外部 CDN 依赖，完全离线可用，严格符合 Edge Add-ons 与 Chrome Web Store 规范。 |
 
 ---
 
-## 🚀 安装方法
+## 🚀 极速安装
 
-### 方式一：Microsoft Edge 浏览器安装
-1. 下载或克隆本项目代码到本地任意目录：
-   ```bash
-   git clone https://github.com/qyyyy09315/Github-Remark-Reborn.git
-   ```
-2. 打开 Edge 浏览器，地址栏输入进入 `edge://extensions/`
-3. 开启左侧的「开发人员模式」开关
-4. 点击「加载解压缩的扩展」，选择解压后的项目根目录
-5. 安装完成，打开任意 [GitHub](https://github.com) 页面即可享受个性化备注！
+### 方式一：下载 Release 压缩包（推荐，即装即用）
+1. 前往 [Releases 页面](https://github.com/qyyyy09315/Github-Remark-Reborn/releases) 下载最新版本的 `GithubRemarkReborn-v1.0.0.zip` 并解压。
+2. 打开浏览器扩展管理页面：
+   - **Microsoft Edge**：地址栏输入 `edge://extensions/`
+   - **Google Chrome**：地址栏输入 `chrome://extensions/`
+3. 开启页面上的「**开发者模式 / 开发人员模式**」。
+4. 点击「**加载已解压的扩展程序 / 加载解压缩的扩展**」，选择解压后的文件夹即可完成安装！
 
-### 方式二：Google Chrome 浏览器安装
-1. 打开 Chrome 浏览器，进入扩展管理页面 `chrome://extensions/`
-2. 开启右上角「开发者模式」
-3. 点击「加载已解压的扩展程序」，选择项目根目录
-4. 安装完成，刷新 GitHub 页面即可使用
+### 方式二：通过 Git 克隆源码
+```bash
+git clone https://github.com/qyyyy09315/Github-Remark-Reborn.git
+```
+在浏览器扩展页面中加载该目录即可。
 
 ---
 
 ## 📖 使用指南
 
-1. **为用户添加备注**：
-   - **方式 1（个人主页）**：访问目标用户的 Profile 主页（如 `https://github.com/torvalds`），点击昵称下方的「+ 添加备注」按钮，输入备注后按 `Enter` 即可保存。
-   - **方式 2（扩展弹窗）**：点击浏览器右上角插件图标，在快速添加卡片中输入 GitHub 用户名与备注名点击「保存」。
-   - **方式 3（右键菜单）**：在任何指向 GitHub 用户的链接上点击鼠标右键，选择「对此 GitHub 用户添加/编辑备注」。
-2. **修改或删除备注**：
-   - 鼠标悬停在任意备注徽章上，点击 ✎ 可原地编辑，点击 ✕ 可直接删除。
-3. **数据管理与导出备份**：
-   - 点击插件弹窗中的「管理全部备注」或右键选择「选项」，可进入全功能控制面板。
-   - 控制面板支持：用户名/备注名模糊搜索、头像实时预览、就地修改、一键导出 JSON 备份及从备份文件恢复。
+1. **添加备注**：
+   - **在个人主页**：打开任意用户主页（如 `https://github.com/torvalds`），点击主昵称下方的「**+ 添加备注**」胶囊按钮，输入内容按 `Enter` 即可保存。
+   - **在关注/粉丝/项目列表**：鼠标悬停在任意未备注开发者的名字附近，会自动显现「**+ 备注**」微型按钮，点击就地输入。
+   - **在扩展弹窗中**：点击浏览器右上角插件图标，在快捷添加栏中输入 GitHub 用户名与备注，点击「保存」。
+   - **在右键菜单中**：在任意指向 GitHub 用户的链接上点击鼠标右键，选择「对此 GitHub 用户添加/编辑备注」。
+2. **修改与删除**：
+   - 鼠标悬停在任意已有备注徽章上，会自动呼出 ✎（编辑）与 ✕（删除）小工具。
+   - 内联编辑支持快捷键：`Enter` 确认保存，`Esc` 取消还原。
+3. **管理与导出备份**：
+   - 点击插件弹窗底部的「管理全部备注」，进入全功能控制仪表盘。
+   - 支持按用户名或备注名实时模糊搜索、一键导出 JSON 备份、上传 JSON 恢复合并。
 
 ---
 
-## 🏗️ 技术架构
+## 🏗️ 项目架构
 
-- **Manifest V3 规范**：使用声明式 `content_scripts` 拦截与注入，彻底根除旧版本动态注入脚本导致的事件重叠与性能浪费。
-- **本地优先（Local-First）**：页面渲染时由内存 Map 实现 0 毫秒极速匹配，告别 N+1 网络请求风暴。
-- **存储引擎**：基于 `chrome.storage.sync`（优先）+ `chrome.storage.local`（兜底），安全轻便。
-- **可选自建后端 (`server/`)**：
-  - 若团队或组织内部有私有化集中同步需求，可部署 `server/` 下基于 Node.js + Mongoose 的轻量级服务。
-  - 启动方式：进入 `server` 目录，执行 `npm install && npm start`。
+```text
+GithubRemarkReborn/
+├── manifest.json        # 扩展配置清单 (Manifest V3, 声明式 content_scripts)
+├── storage.js           # 统一存储引擎 (chrome.storage.sync 优先, 支持导入/导出/广播)
+├── ghremark.js          # 核心内容脚本 (高对比度样式、主页入口、悬停添加、Turbo单页适配)
+├── bg.js                # Background Service Worker (右键菜单、Badge 状态指示)
+├── popup.html / .js     # 现代弹出卡片 (状态开关、数据统计、快捷添加)
+├── options.html / .js   # 全功能控制仪表盘 (实时检索、就地修改、备份中心)
+├── images/              # 扩展高清图标资源
+└── server/              # (可选) 私有 Node.js + MongoDB 后端同步服务
+```
 
 ---
 
-## 👨‍💻 贡献与参考
+## 🤝 贡献与 Pull Request (PR) 提交规范
 
-- 作者：[qyyyy](https://github.com/qyyyy)
-- 原项目：[GithubRemark](https://github.com/dpy1123/GithubRemark) by [DD](https://github.com/dpy1123)
-- 设计参考：[refined-github](https://github.com/refined-github/refined-github)
+我们非常欢迎社区提交 Bug 修复、交互改进或新功能建议！为保证项目的代码质量与审核效率，请遵循以下规范：
+
+### 1. 分支与提交规范
+- 提交前请基于 `master` 分支检出新的特性分支（例如 `feat/your-feature-name` 或 `fix/issue-description`）。
+- 提交信息（Commit Message）推荐使用语义化规范：
+  - `feat: ...`（新增功能）
+  - `fix: ...`（Bug 修复）
+  - `style: ...`（样式调整与视觉优化）
+  - `refactor: ...`（代码重构）
+  - `docs: ...`（文档补充与修正）
+
+### 2. 代码要求
+- **Manifest V3 合规**：严禁在任何 HTML 或脚本中引入未打包的外部 CDN 资源，确保扩展离线可用并通过商店安全审核。
+- **视觉无障碍**：修改或新增 UI 元素时，必须同时考虑 GitHub 浅色模式与深色模式，文字与背景必须保持足够高的色彩对比度。
+- **双浏览器兼容**：改动需在 Microsoft Edge 与 Google Chrome 上均完成实测。
+
+### 3. ⚠️ PR 审核与通知规范（重要！）
+> **请在提交 Pull Request 时务必注意：**
+> 
+> 📢 **请在 PR 描述或评论区 @qyyyy09315（本项目当前维护者）**，我们会在第一时间收到通知并进行 Code Review 与合并测试！
+> 
+> 🚫 **请切勿 @bobdong 或 @dpy1123**。他们是数年前原版项目的原作者，当前并不维护此重制版仓库，请避免向他们发送不必要的通知打扰。
+
+---
+
+## 📄 开源许可
+
+本项目基于 [MIT License](LICENSE) 开源。
+
+- 本项目重制与维护：[@qyyyy09315](https://github.com/qyyyy09315)
+- 原项目贡献致谢：[dpy1123/GithubRemark](https://github.com/dpy1123/GithubRemark) by [DD](https://github.com/dpy1123)
+- 设计与架构参考：[refined-github](https://github.com/refined-github/refined-github)
