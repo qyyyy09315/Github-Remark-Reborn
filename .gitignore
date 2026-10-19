@@ -1,0 +1,11 @@
+# Dependencies
+node_modules/
+
+# Local IDE / Tool configs
+.zcode/
+.vscode/
+.idea/
+
+# OS generated
+.DS_Store
+Thumbs.db

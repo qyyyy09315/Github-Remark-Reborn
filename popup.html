@@ -1,32 +1,232 @@
 <!DOCTYPE html>
-<html lang="en">
-
+<html lang="zh-CN">
 <head>
-	<meta charset="utf-8">
-	<title>GithubRemarkReborn</title>
-	<!-- CSS only -->
-	<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css"
-		integrity="sha384-HSMxcRTRxnN+Bdg0JdbxYKrThecOKuH5zCYotlSAcp1+c8xmyTe9GYg1l9a69psu" crossorigin="anonymous">
-	<style>
-		* {
-			margin: 0;
-			padding: 0;
-		}
-
-		body {
-			width: 70px;
-			height: 80px;
-		}
-	</style>
+  <meta charset="utf-8">
+  <title>GithubRemarkReborn</title>
+  <style>
+    :root {
+      --bg: #ffffff;
+      --card-bg: #f8fafc;
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+      --border: #e2e8f0;
+      --primary: #2563eb;
+      --primary-hover: #1d4ed8;
+      --input-bg: #ffffff;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #0f172a;
+        --card-bg: #1e293b;
+        --text-main: #f8fafc;
+        --text-muted: #94a3b8;
+        --border: #334155;
+        --primary: #3b82f6;
+        --primary-hover: #2563eb;
+        --input-bg: #0f172a;
+      }
+    }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      width: 280px;
+      padding: 16px;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Microsoft YaHei", sans-serif;
+      background: var(--bg);
+      color: var(--text-main);
+      user-select: none;
+    }
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid var(--border);
+    }
+    .title-area {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .title-area img {
+      width: 20px;
+      height: 20px;
+    }
+    .title {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+    /* Toggle Switch */
+    .switch-wrap {
+      position: relative;
+      display: inline-block;
+      width: 38px;
+      height: 20px;
+    }
+    .switch-wrap input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background-color: #cbd5e1;
+      transition: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      border-radius: 20px;
+    }
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 14px;
+      width: 14px;
+      left: 3px;
+      bottom: 3px;
+      background-color: white;
+      transition: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      border-radius: 50%;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.2);
+    }
+    input:checked + .slider {
+      background-color: var(--primary);
+    }
+    input:checked + .slider:before {
+      transform: translateX(18px);
+    }
+    /* 统计卡片 */
+    .stat-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px;
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .stat-label {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+    .stat-val {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--primary);
+    }
+    /* 快捷添加表单 */
+    .quick-add {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+    .section-title {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .input-row {
+      display: flex;
+      gap: 6px;
+    }
+    .input-field {
+      width: 100%;
+      padding: 6px 10px;
+      font-size: 12px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: var(--input-bg);
+      color: var(--text-main);
+      outline: none;
+      transition: border-color 0.15s ease;
+    }
+    .input-field:focus {
+      border-color: var(--primary);
+    }
+    .btn-submit {
+      padding: 6px 12px;
+      background: var(--primary);
+      color: #ffffff;
+      border: none;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: background 0.15s ease;
+    }
+    .btn-submit:hover {
+      background: var(--primary-hover);
+    }
+    /* 底部操作 */
+    .footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-top: 10px;
+      border-top: 1px solid var(--border);
+    }
+    .footer-link {
+      font-size: 12px;
+      color: var(--primary);
+      text-decoration: none;
+      cursor: pointer;
+      font-weight: 500;
+    }
+    .footer-link:hover {
+      text-decoration: underline;
+    }
+    .tip-msg {
+      font-size: 11px;
+      margin-top: 4px;
+      min-height: 14px;
+      transition: all 0.2s ease;
+    }
+    .tip-msg.success { color: #10b981; }
+    .tip-msg.error { color: #ef4444; }
+  </style>
 </head>
-
 <body>
-	<ul class="nav nav-pills nav-stacked">
-		<li role="presentation"><a href="#" id="startRecord"><span class="glyphicon glyphicon-record" aria-hidden="true"></span> On</a></li>
-		<li role="presentation"><a href="#" id="stopRecord"><span class="glyphicon glyphicon-pause" aria-hidden="true"></span> Off</a></li>	
-	</ul>
+  <div class="header">
+    <div class="title-area">
+      <img src="images/github.png" alt="icon">
+      <span class="title">GithubRemark</span>
+    </div>
+    <label class="switch-wrap" title="启用/暂停插件">
+      <input type="checkbox" id="toggleStatus" checked>
+      <span class="slider"></span>
+    </label>
+  </div>
 
-	<script src="popup.js"></script>
+  <div class="stat-card">
+    <span class="stat-label">已备注开发者数量</span>
+    <span class="stat-val" id="totalRemarksCount">0</span>
+  </div>
+
+  <div class="quick-add">
+    <span class="section-title">快速添加备注</span>
+    <input type="text" id="inputUsername" class="input-field" placeholder="GitHub 用户名 (如 torvalds)">
+    <div class="input-row">
+      <input type="text" id="inputRemark" class="input-field" placeholder="设置备注名">
+      <button id="btnQuickAdd" class="btn-submit">保存</button>
+    </div>
+    <div id="tipMsg" class="tip-msg"></div>
+  </div>
+
+  <div class="footer">
+    <a id="btnOpenOptions" class="footer-link">管理全部备注 &gt;</a>
+    <span style="font-size: 11px; color: var(--text-muted);" id="statusIndicator">已开启</span>
+  </div>
+
+  <script src="storage.js"></script>
+  <script src="popup.js"></script>
 </body>
-
 </html>

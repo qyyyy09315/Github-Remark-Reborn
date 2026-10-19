@@ -1,72 +1,92 @@
-var GithubRemark = function (initParams) {
-	var _started = false,
-		_watchUrls = ['github.com'];
+/**
+ * GithubRemark Background Service Worker
+ * 兼容 Chrome 与 Microsoft Edge
+ */
 
-	Object.defineProperties(this, {
-		'isStart': { set: function (value) { _started = value; _valueUpdateTime = Date.now(); }, get: function () { return _started; } }
-	});
+var KEY_STATUS = 'gh_record_status';
 
-	var _insertFunc = function (tabId, changeInfo, tab) {
-		if (changeInfo.status == 'loading' && !!changeInfo.url) {
-			var urlPattern = new RegExp("(" + _watchUrls.join('|') + ")");
-			var targetUrl = changeInfo.url || tab.url;
-            if (urlPattern.test(targetUrl)) {
-				chrome.scripting.executeScript({
-					target: { tabId: tabId },
-					files: ['webapi.js', 'ghremark.js']
-				});
-			}
-		}
-	}
-
-	this.start = function () {
-		if (_started == true) return;
-		chrome.tabs.onUpdated.addListener(_insertFunc);
-		chrome.storage.local.set({ recordStatus: "on" });
-		_started = true;
-	};
-
-	this.stop = function () {
-		if (_started == false) return;
-		chrome.tabs.onUpdated.removeListener(_insertFunc);
-		chrome.storage.local.set({ recordStatus: "off" });
-		_started = false;
-	};
+function updateBadge(enabled) {
+    if (chrome.action) {
+        if (!enabled) {
+            chrome.action.setBadgeBackgroundColor({ color: '#6b7280' });
+            chrome.action.setBadgeText({ text: 'OFF' });
+        } else {
+            chrome.action.setBadgeText({ text: '' });
+        }
+    }
 }
 
-
-//init
-
-var gr = new GithubRemark();
-
-chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
-	switch (message.method) {
-		case 'start':
-			gr.start();
-			sendResponse({ status: gr.isStart });
-			break;
-		case 'stop':
-			gr.stop();
-			sendResponse({ status: gr.isStart });
-			break;
-		// case 'getLocalStorage': 
-		// 	chrome.storage.local.get(message.key).then((result) => {
-		// 		console.log("Value is set to " + result[message.key]);
-		// 		sendResponse(result[message.key]);
-		// 	});
-		// 	break;
-		// case 'setLocalStorage': 
-		// 	chrome.storage.local.set({ [message.key] : message.value });
-		// 	break;
-	}
-
+// 初始化状态
+chrome.storage.local.get([KEY_STATUS], function (res) {
+    var enabled = !res || res[KEY_STATUS] !== 'off';
+    updateBadge(enabled);
 });
 
-//恢复上次的状态
-chrome.storage.local.get("recordStatus").then((result) => {
-	if (result["recordStatus"] == "on") {
-		gr.start();
-		chrome.action.setBadgeBackgroundColor({ color: '#FF0000' });
-		chrome.action.setBadgeText({ text: 'on' });
-	}
+// 监听存储状态变更
+chrome.storage.onChanged.addListener(function (changes, areaName) {
+    if (changes[KEY_STATUS]) {
+        var enabled = changes[KEY_STATUS].newValue !== 'off';
+        updateBadge(enabled);
+    }
+});
+
+// 安装与更新时初始化右键菜单
+chrome.runtime.onInstalled.addListener(function () {
+    chrome.contextMenus.removeAll(function () {
+        chrome.contextMenus.create({
+            id: 'ghrk_open_options',
+            title: '管理所有 GitHub 备注',
+            contexts: ['action']
+        });
+        chrome.contextMenus.create({
+            id: 'ghrk_add_remark_link',
+            title: '对此 GitHub 用户添加/编辑备注',
+            contexts: ['link'],
+            targetUrlPatterns: ['*://github.com/*']
+        });
+    });
+});
+
+// 右键菜单点击响应
+chrome.contextMenus.onClicked.addListener(function (info, tab) {
+    if (info.menuItemId === 'ghrk_open_options') {
+        chrome.runtime.openOptionsPage();
+    } else if (info.menuItemId === 'ghrk_add_remark_link' && info.linkUrl && tab && tab.id) {
+        // 从链接中提取用户名
+        var match = /github\.com\/([a-zA-Z0-9\-_]+)(?:\/|$)/.exec(info.linkUrl);
+        if (match && match[1]) {
+            var username = match[1];
+            // 排除 GitHub 保留路径
+            var reserved = ['features', 'business', 'explore', 'marketplace', 'pricing', 'topics', 'trending', 'collections', 'events', 'settings', 'notifications', 'login', 'join', 'about', 'security', 'contact', 'terms', 'privacy'];
+            if (reserved.indexOf(username.toLowerCase()) === -1) {
+                chrome.tabs.sendMessage(tab.id, {
+                    action: 'trigger_edit_user',
+                    username: username
+                }).catch(function () {
+                    // 若页面未响应则直接打开选项页并聚焦
+                    chrome.runtime.openOptionsPage();
+                });
+            }
+        }
+    }
+});
+
+// 监听运行时消息
+chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
+    if (message.action === 'get_status') {
+        chrome.storage.local.get([KEY_STATUS], function (res) {
+            sendResponse({ enabled: !res || res[KEY_STATUS] !== 'off' });
+        });
+        return true;
+    } else if (message.action === 'toggle_status') {
+        var newStatus = message.enabled ? 'on' : 'off';
+        chrome.storage.local.set({ [KEY_STATUS]: newStatus }, function () {
+            updateBadge(message.enabled);
+            sendResponse({ success: true, enabled: message.enabled });
+        });
+        return true;
+    } else if (message.action === 'open_options') {
+        chrome.runtime.openOptionsPage();
+        sendResponse({ success: true });
+    }
 });

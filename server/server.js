@@ -1,65 +1,105 @@
-var http = require('http');
-var url = require("url");
-var queryString = require("querystring");
-var db_opt = require('./db.js');
-var port = 8855;
+const http = require('http');
+const url = require('url');
+const db_opt = require('./db.js');
 
-function parsePost(req, res, next) {
-    var arr = [];
-    req.addListener("data", function (data) {
-        arr.push(data);
-    });
-    req.addListener("end", function () {
-        var data = Buffer.concat(arr).toString(), ret;
-        try {
-            var ret = JSON.parse(data);
-        } catch (err) { }
-        req.body = ret;
-        next();
-    })
-}
+const port = process.env.PORT || 8855;
 
-function process(req, res) {
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    var result = {
-        "success": true
-    };
-    var reqUrl = url.parse(req.url, true);
-    switch (reqUrl.pathname) {
-        case '/getRemark':
-            // console.log(reqUrl.query);
-            db_opt.getRemark(reqUrl.query.token, reqUrl.query.username, function (doc) {
-                result.data = doc ? doc.remark : 'no remark';
-                res.writeHeader(200, { 'Content-Type': 'application/json' });
-                res.end(JSON.stringify(result));
-            });
-            break;
-        case '/updateRemark':
-            // console.log(req.body);
-            db_opt.updateRemark(req.body.token, req.body.username, req.body.remark, function (doc) {
-                res.writeHeader(200, { 'Content-Type': 'application/json' });
-                res.end(JSON.stringify(result));
-            });
-            break;
-    }
-}
-
-var server = http.createServer(function (req, res) {
-    if (req.method.toUpperCase() == 'POST') {
-        parsePost(req, res, function () {
-            process(req, res)
-        })
-    } else if (req.method.toUpperCase() == 'GET') {
-        process(req, res)
-    } else if (req.method.toUpperCase() == 'OPTIONS') {
-        res.writeHead(200, {
-            'Access-Control-Allow-Origin': '*',
-            'Access-Control-Allow-Credential': 'true',
-            "Access-Control-Allow-Headers": '*',
-            'Access-Control-Allow-Methods': 'GET,POST,PUT,DELETE,OPTIONS'
+function parseJsonBody(req, maxBytes = 1048576) {
+    return new Promise((resolve, reject) => {
+        let size = 0;
+        const chunks = [];
+        req.on('data', chunk => {
+            size += chunk.length;
+            if (size > maxBytes) {
+                reject(new Error('Payload too large'));
+                req.destroy();
+                return;
+            }
+            chunks.push(chunk);
         });
-        res.end();
+        req.on('end', () => {
+            try {
+                const bodyStr = Buffer.concat(chunks).toString('utf8');
+                const parsed = bodyStr ? JSON.parse(bodyStr) : {};
+                resolve(parsed);
+            } catch (err) {
+                reject(new Error('Invalid JSON format'));
+            }
+        });
+        req.on('error', reject);
+    });
+}
+
+function sendJson(res, statusCode, data) {
+    res.writeHead(statusCode, {
+        'Content-Type': 'application/json; charset=utf-8',
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'GET,POST,OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization'
+    });
+    res.end(JSON.stringify(data));
+}
+
+const server = http.createServer(async (req, res) => {
+    // 跨域预检
+    if (req.method === 'OPTIONS') {
+        res.writeHead(204, {
+            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Methods': 'GET,POST,OPTIONS',
+            'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+            'Access-Control-Max-Age': '86400'
+        });
+        return res.end();
+    }
+
+    const parsedUrl = url.parse(req.url, true);
+    const pathname = parsedUrl.pathname;
+
+    try {
+        if (req.method === 'GET' && pathname === '/getRemark') {
+            const { token, username } = parsedUrl.query;
+            if (!token || !username) {
+                return sendJson(res, 400, { success: false, error: 'Missing token or username' });
+            }
+            const doc = await db_opt.getRemark(token, username);
+            return sendJson(res, 200, {
+                success: true,
+                data: doc && doc.remark ? doc.remark : 'no remark'
+            });
+        }
+
+        if (req.method === 'GET' && pathname === '/getAllRemarks') {
+            const { token } = parsedUrl.query;
+            if (!token) {
+                return sendJson(res, 400, { success: false, error: 'Missing token' });
+            }
+            const list = await db_opt.getAllRemarks(token);
+            const dict = {};
+            list.forEach(item => {
+                if (item.username && item.remark) {
+                    dict[item.username] = item.remark;
+                }
+            });
+            return sendJson(res, 200, { success: true, data: dict });
+        }
+
+        if (req.method === 'POST' && pathname === '/updateRemark') {
+            const body = await parseJsonBody(req);
+            const { token, username, remark } = body;
+            if (!token || !username) {
+                return sendJson(res, 400, { success: false, error: 'Missing token or username' });
+            }
+            await db_opt.updateRemark(token, username, remark);
+            return sendJson(res, 200, { success: true });
+        }
+
+        sendJson(res, 404, { success: false, error: 'Not Found' });
+    } catch (err) {
+        console.error('Server error:', err);
+        sendJson(res, 500, { success: false, error: err.message || 'Internal server error' });
     }
 });
-server.listen(port);
-console.log("http server running on port " + port + " ...");
+
+server.listen(port, () => {
+    console.log(`[GithubRemark Server] running on http://127.0.0.1:${port}`);
+});

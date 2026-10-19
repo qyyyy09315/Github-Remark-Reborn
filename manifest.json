@@ -1,33 +1,47 @@
 {
   "manifest_version": 3,
   "name": "GithubRemarkReborn",
-  "version": "0.8.0",
-  "description": "给你的Github好友增加备注名吧～",
+  "version": "1.0.0",
+  "description": "给你的GitHub好友和关注开发者添加个性化备注，支持个人主页常驻添加入口、全场景徽章展示及跨设备云同步",
   "author": "qyyyy",
   "icons": {
+    "16": "images/github.png",
+    "32": "images/github.png",
+    "48": "images/github.png",
     "128": "images/github_512.png"
   },
   "background": {
     "service_worker": "bg.js"
   },
   "permissions": [
-    "tabs",
-    "scripting",
-    "storage"
+    "storage",
+    "contextMenus"
   ],
   "host_permissions": [
     "*://*.github.com/*"
   ],
+  "content_scripts": [
+    {
+      "matches": [
+        "*://*.github.com/*"
+      ],
+      "js": [
+        "storage.js",
+        "ghremark.js"
+      ],
+      "run_at": "document_idle"
+    }
+  ],
   "action": {
     "default_title": "GithubRemark",
     "default_icon": {
-      "19": "images/github.png"
+      "16": "images/github.png",
+      "32": "images/github.png"
     },
     "default_popup": "popup.html"
   },
   "options_ui": {
     "page": "options.html",
     "open_in_tab": true
-  },
-  "devtools_page": "options.html"
+  }
 }

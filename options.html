@@ -1,39 +1,315 @@
 <!DOCTYPE html>
-<html lang="en">
-	<head>
-		<meta charset="utf-8">
-		<title>GithubRemarkReborn</title>
-		<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css"
-			integrity="sha384-HSMxcRTRxnN+Bdg0JdbxYKrThecOKuH5zCYotlSAcp1+c8xmyTe9GYg1l9a69psu" crossorigin="anonymous">
-	</head>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <title>GithubRemark 控制面板 - 备注管理与设置</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    :root {
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+      --border: #e2e8f0;
+      --primary: #2563eb;
+      --primary-hover: #1d4ed8;
+      --primary-light: #eff6ff;
+      --danger: #ef4444;
+      --danger-hover: #dc2626;
+      --input-bg: #ffffff;
+      --table-hover: #f1f5f9;
+      --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+      --shadow: 0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -2px rgba(0,0,0,0.05);
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #0b0f19;
+        --card-bg: #131b2e;
+        --text-main: #f8fafc;
+        --text-muted: #94a3b8;
+        --border: #232f48;
+        --primary: #3b82f6;
+        --primary-hover: #2563eb;
+        --primary-light: rgba(59, 130, 246, 0.15);
+        --danger: #f87171;
+        --danger-hover: #ef4444;
+        --input-bg: #0f172a;
+        --table-hover: #1b2640;
+        --shadow-sm: 0 1px 3px rgba(0,0,0,0.3);
+        --shadow: 0 4px 12px rgba(0,0,0,0.4);
+      }
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text-main);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Microsoft YaHei", sans-serif;
+      line-height: 1.5;
+      padding: 32px 20px;
+    }
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+    }
+    /* 顶部导航与品牌 */
+    .header-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 24px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--border);
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .brand img {
+      width: 32px;
+      height: 32px;
+    }
+    .brand h1 {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+    .brand p {
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+    .badges-top {
+      display: flex;
+      gap: 8px;
+    }
+    .sync-badge {
+      font-size: 12px;
+      padding: 4px 10px;
+      border-radius: 9999px;
+      background: var(--primary-light);
+      color: var(--primary);
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    /* 卡片通用样式 */
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      box-shadow: var(--shadow);
+      padding: 20px;
+      margin-bottom: 24px;
+    }
+    .card-title {
+      font-size: 15px;
+      font-weight: 600;
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    /* 新增与过滤栏 */
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr auto;
+      gap: 12px;
+    }
+    .input-control {
+      padding: 8px 12px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--input-bg);
+      color: var(--text-main);
+      font-size: 13px;
+      outline: none;
+      transition: border-color 0.15s ease, box-shadow 0.15s ease;
+      width: 100%;
+    }
+    .input-control:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(59,130,246,0.15);
+    }
+    .btn {
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      transition: all 0.15s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .btn-primary { background: var(--primary); color: #fff; }
+    .btn-primary:hover { background: var(--primary-hover); }
+    .btn-secondary { background: var(--border); color: var(--text-main); }
+    .btn-secondary:hover { opacity: 0.85; }
+    .btn-danger { background: var(--danger); color: #fff; }
+    .btn-danger:hover { background: var(--danger-hover); }
+    /* 搜索栏与列表 */
+    .search-bar {
+      margin-bottom: 16px;
+    }
+    .table-wrap {
+      overflow-x: auto;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 13px;
+    }
+    th {
+      background: var(--bg);
+      padding: 10px 14px;
+      font-weight: 600;
+      color: var(--text-muted);
+      border-bottom: 1px solid var(--border);
+    }
+    td {
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--border);
+      vertical-align: middle;
+    }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: var(--table-hover); }
+    .user-cell {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .avatar {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: #cbd5e1;
+      object-fit: cover;
+    }
+    .username-link {
+      color: var(--text-main);
+      text-decoration: none;
+      font-weight: 600;
+    }
+    .username-link:hover {
+      color: var(--primary);
+      text-decoration: underline;
+    }
+    .remark-badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 9999px;
+      background: var(--primary-light);
+      color: var(--primary);
+      font-weight: 600;
+      font-size: 12px;
+    }
+    .table-actions {
+      display: flex;
+      gap: 8px;
+      justify-content: flex-end;
+    }
+    .btn-sm {
+      padding: 4px 10px;
+      font-size: 12px;
+      border-radius: 6px;
+    }
+    .empty-state {
+      padding: 40px 20px;
+      text-align: center;
+      color: var(--text-muted);
+    }
+    /* 备份与同步操作栏 */
+    .backup-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+    }
+    .tip-box {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 10px;
+      line-height: 1.6;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header-bar">
+      <div class="brand">
+        <img src="images/github.png" alt="logo">
+        <div>
+          <h1>GithubRemark 控制面板</h1>
+          <p>个性化备注管理中心 · 跨设备多端云同步</p>
+        </div>
+      </div>
+      <div class="badges-top">
+        <span class="sync-badge">☁️ Edge & Chrome 云同步就绪</span>
+      </div>
+    </div>
 
-	<body>
-		
-		<div class="jumbotron">
-			<div class="container">
-				<h1>GithubRemarkReborn</h1>
-				<p>给你的github好友添加备注吧～</p>
-			</div>
-		</div>
+    <!-- 快速新增备注卡片 -->
+    <div class="card">
+      <div class="card-title">
+        <span>添加或修改备注</span>
+      </div>
+      <div class="form-grid">
+        <input type="text" id="addUsername" class="input-control" placeholder="GitHub 用户名 (如 torvalds)">
+        <input type="text" id="addRemark" class="input-control" placeholder="设定备注名 (如 Linux 之父)">
+        <button id="btnSaveRemark" class="btn btn-primary">保存备注</button>
+      </div>
+    </div>
 
-		<div class="container clearfix">
-		
-			<div class="bs-example">
-				<div class="form-inline">
-					<div class="form-group">
-						<label>Name
-							<input id="userId" type="text" class="form-control" placeholder="userId">
-						</label>
-					</div>
-					<div class="form-group">
-						<button id="save" class="btn btn-default" type="button">Save</button>
-					</div>
-				</div>
-			</div>	 
-			
-		</div>
+    <!-- 备注列表卡片 -->
+    <div class="card">
+      <div class="card-title">
+        <span>所有已备注开发者 (<span id="countText">0</span>)</span>
+      </div>
+      <div class="search-bar">
+        <input type="text" id="searchInput" class="input-control" placeholder="🔍 输入用户名或备注名快速搜索...">
+      </div>
+      <div class="table-wrap">
+        <table id="remarksTable">
+          <thead>
+            <tr>
+              <th style="width: 45%;">GitHub 开发者</th>
+              <th style="width: 35%;">备注名</th>
+              <th style="width: 20%; text-align: right;">操作</th>
+            </tr>
+          </thead>
+          <tbody id="remarksBody">
+            <!-- 动态渲染 -->
+          </tbody>
+        </table>
+        <div id="emptyTip" class="empty-state" style="display: none;">
+          暂无符合条件的备注记录
+        </div>
+      </div>
+    </div>
 
-		<script src="option.js"></script>
-	</body>
+    <!-- 数据备份与迁移 -->
+    <div class="card">
+      <div class="card-title">
+        <span>数据备份与迁移</span>
+      </div>
+      <div class="backup-actions">
+        <button id="btnExport" class="btn btn-secondary">📥 导出备份数据 (JSON)</button>
+        <button id="btnImportTrigger" class="btn btn-secondary">📤 从 JSON 文件恢复</button>
+        <input type="file" id="importFileInput" accept=".json" style="display: none;">
+        <button id="btnClearAll" class="btn btn-danger" style="margin-left: auto;">🗑️ 清空所有备注</button>
+      </div>
+      <div class="tip-box">
+        💡 提示：本插件原生支持 Chrome 与 Microsoft Edge 的 <code>chrome.storage.sync</code> 账户同步。登录浏览器账号后，备注数据将在你的多台电脑间自动无感同步。你可以随时导出 JSON 进行长期离线归档。
+      </div>
+    </div>
+  </div>
 
+  <script src="storage.js"></script>
+  <script src="option.js"></script>
+</body>
 </html>
