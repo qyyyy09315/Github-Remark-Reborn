@@ -52,6 +52,9 @@
             '  --ghrk-add-btn-bg: #f8fafc;',
             '  --ghrk-add-btn-border: #cbd5e1;',
             '  --ghrk-add-btn-text: #334155;',
+            '  --ghrk-bar-bg: #ffffff;',
+            '  --ghrk-bar-border: #d0d7de;',
+            '  --ghrk-bar-shadow: 0 6px 18px rgba(31, 35, 40, 0.16), 0 1px 3px rgba(31, 35, 40, 0.08);',
             '}',
             '/* 仅在 GitHub 明确处于深色模式时切换为暗色高亮配色 (严禁使用 data-dark-theme 等常驻属性) */',
             'html[data-color-mode="dark"], [data-color-mode="dark"] body {',
@@ -70,6 +73,9 @@
             '  --ghrk-add-btn-bg: rgba(30, 41, 59, 0.6);',
             '  --ghrk-add-btn-border: #334155;',
             '  --ghrk-add-btn-text: #94a3b8;',
+            '  --ghrk-bar-bg: #21262d;',
+            '  --ghrk-bar-border: #30363d;',
+            '  --ghrk-bar-shadow: 0 6px 18px rgba(1, 4, 9, 0.6), 0 1px 3px rgba(1, 4, 9, 0.5);',
             '}',
             '/* 备注徽章基础样式 - 字迹大而清晰、对比度极高 */',
             '.github-remarks {',
@@ -97,7 +103,6 @@
             '.github-remarks:hover {',
             '  background: var(--ghrk-badge-hover-bg);',
             '  border-color: var(--ghrk-badge-hover-border);',
-            '  transform: translateY(-0.5px);',
             '}',
             '/* 个人主页大号徽章 */',
             '.github-remarks.ghrk-profile-badge {',
@@ -178,36 +183,46 @@
             '  font-weight: 700 !important;',
             '  color: var(--ghrk-badge-text) !important;',
             '}',
-            '.ghrk-tools {',
+            '/* 悬浮操作条：挂载于 body 固定定位，完全不参与父容器布局，避免悬停抖动 */',
+            '.ghrk-float-bar {',
+            '  position: fixed;',
+            '  z-index: 2147483000;',
             '  display: none;',
             '  align-items: center;',
-            '  gap: 3px;',
-            '  margin-left: 3px;',
+            '  gap: 5px;',
+            '  padding: 3px 5px;',
+            '  border-radius: 9999px;',
+            '  background: var(--ghrk-bar-bg);',
+            '  border: 1px solid var(--ghrk-bar-border);',
+            '  box-shadow: var(--ghrk-bar-shadow);',
+            '  animation: ghrk-bar-in 0.12s ease-out;',
+            '  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans", Helvetica, Arial, sans-serif;',
             '}',
-            '.github-remarks:hover .ghrk-tools {',
-            '  display: inline-flex;',
-            '}',
-            '.ghrk-btn-tool {',
+            '.ghrk-bar-btn {',
             '  display: inline-flex;',
             '  align-items: center;',
             '  justify-content: center;',
-            '  width: 18px;',
-            '  height: 18px;',
+            '  width: 20px;',
+            '  height: 20px;',
             '  border-radius: 50%;',
             '  border: none;',
             '  padding: 0;',
             '  cursor: pointer;',
             '  outline: none;',
-            '  transition: transform 0.1s ease;',
+            '  transition: transform 0.1s ease, background 0.1s ease;',
             '}',
-            '.ghrk-btn-tool:hover { transform: scale(1.15); }',
-            '.ghrk-btn-tool.edit {',
+            '.ghrk-bar-btn:hover { transform: scale(1.12); }',
+            '.ghrk-bar-btn.edit {',
             '  background: var(--ghrk-btn-edit-bg);',
             '  color: var(--ghrk-btn-edit-text);',
             '}',
-            '.ghrk-btn-tool.delete {',
+            '.ghrk-bar-btn.delete {',
             '  background: var(--ghrk-btn-del-bg);',
             '  color: var(--ghrk-btn-del-text);',
+            '}',
+            '@keyframes ghrk-bar-in {',
+            '  from { opacity: 0; transform: translateY(2px) scale(0.94); }',
+            '  to { opacity: 1; transform: translateY(0) scale(1); }',
             '}',
             '/* 内联编辑区 */',
             '.ghrk-edit-area {',
@@ -228,7 +243,7 @@
             '  width: 110px;',
             '  box-shadow: 0 0 0 2px rgba(2, 132, 199, 0.18);',
             '}',
-            '.ghrk-edit-mode > .ghrk-label, .ghrk-edit-mode > .ghrk-tag-icon, .ghrk-edit-mode > .ghrk-tools {',
+            '.ghrk-edit-mode > .ghrk-label, .ghrk-edit-mode > .ghrk-tag-icon {',
             '  display: none !important;',
             '}',
             '.ghrk-btn-save, .ghrk-btn-cancel {',
@@ -364,6 +379,115 @@
         }, 50);
     }
 
+    // ===== 悬浮操作条（挂载于 body，零布局位移，杜绝悬停抖动/裁剪/消失） =====
+    var _floatBar = null;
+    var _floatTimer = null;
+    var _floatBadge = null;
+
+    function ensureFloatBar() {
+        if (_floatBar && document.body.contains(_floatBar)) return _floatBar;
+        var bar = document.createElement('div');
+        bar.className = 'ghrk-float-bar';
+        bar.setAttribute('role', 'toolbar');
+        bar.addEventListener('mouseenter', cancelHideFloatBar);
+        bar.addEventListener('mouseleave', scheduleHideFloatBar);
+        document.body.appendChild(bar);
+        _floatBar = bar;
+        return bar;
+    }
+
+    function cancelHideFloatBar() {
+        if (_floatTimer) {
+            clearTimeout(_floatTimer);
+            _floatTimer = null;
+        }
+    }
+
+    function hideFloatBar() {
+        cancelHideFloatBar();
+        _floatBadge = null;
+        if (_floatBar) {
+            _floatBar.style.display = 'none';
+            _floatBar.innerHTML = '';
+        }
+    }
+
+    function scheduleHideFloatBar() {
+        cancelHideFloatBar();
+        // 延迟隐藏，给指针在徽章与操作条之间移动留出缓冲，避免闪烁
+        _floatTimer = setTimeout(hideFloatBar, 180);
+    }
+
+    function positionFloatBar(bar, badge) {
+        var rect = badge.getBoundingClientRect();
+        if (!rect || (rect.width === 0 && rect.height === 0)) return false;
+        var barRect = bar.getBoundingClientRect();
+        var barW = barRect.width || 64;
+        var barH = barRect.height || 26;
+        // 默认贴在徽章右侧垂直居中；右侧空间不足则改到下方，避免溢出视口
+        var left = rect.right + 6;
+        var top = rect.top + (rect.height - barH) / 2;
+        if (left + barW > window.innerWidth - 8) {
+            left = Math.max(8, Math.min(rect.left, window.innerWidth - barW - 8));
+            top = rect.bottom + 6;
+        }
+        if (top + barH > window.innerHeight - 8) {
+            top = Math.max(8, rect.top - barH - 6);
+        }
+        bar.style.left = Math.round(left) + 'px';
+        bar.style.top = Math.round(top) + 'px';
+        return true;
+    }
+
+    function showFloatBar(badge, username, labelEl) {
+        if (!badge || !document.body.contains(badge) || !labelEl) return;
+        // 编辑状态下不再弹出操作条，避免与输入框叠层
+        if (badge.classList.contains('ghrk-edit-mode')) return;
+        var bar = ensureFloatBar();
+        cancelHideFloatBar();
+        _floatBadge = badge;
+        bar.innerHTML = '';
+
+        var editBtn = document.createElement('button');
+        editBtn.type = 'button';
+        editBtn.className = 'ghrk-bar-btn edit';
+        editBtn.title = '修改备注';
+        editBtn.innerHTML = ICONS.EDIT;
+        editBtn.addEventListener('click', function (e) {
+            e.stopPropagation(); e.preventDefault();
+            hideFloatBar();
+            startInlineEditing(badge, username, labelEl.textContent, badge.classList.contains('ghrk-profile-badge'), function (updated) {
+                if (updated) {
+                    labelEl.textContent = updated;
+                } else {
+                    badge.remove();
+                }
+            });
+        });
+
+        var delBtn = document.createElement('button');
+        delBtn.type = 'button';
+        delBtn.className = 'ghrk-bar-btn delete';
+        delBtn.title = '删除备注';
+        delBtn.innerHTML = ICONS.DELETE;
+        delBtn.addEventListener('click', function (e) {
+            e.stopPropagation(); e.preventDefault();
+            hideFloatBar();
+            if (confirm('确定要删除「' + username + '」的备注吗？')) {
+                delete _remarksCache[username.toLowerCase()];
+                StorageManager.deleteRemark(username);
+                refreshAllBadgesForUser(username, '');
+            }
+        });
+
+        bar.appendChild(editBtn);
+        bar.appendChild(delBtn);
+        bar.style.display = 'inline-flex';
+        if (!positionFloatBar(bar, badge)) {
+            bar.style.display = 'none';
+        }
+    }
+
     // 创建通用备注徽章 DOM
     function createRemarkBadgeElement(username, remark, isProfile) {
         var wrap = document.createElement('span');
@@ -383,40 +507,13 @@
         label.textContent = remark;
         wrap.appendChild(label);
 
-        var tools = document.createElement('span');
-        tools.className = 'ghrk-tools';
-
-        var editBtn = document.createElement('button');
-        editBtn.className = 'ghrk-btn-tool edit';
-        editBtn.innerHTML = ICONS.EDIT;
-        editBtn.title = '修改备注';
-        editBtn.addEventListener('click', function (e) {
-            e.stopPropagation(); e.preventDefault();
-            startInlineEditing(wrap, username, label.textContent, isProfile, function (updated) {
-                if (updated) {
-                    label.textContent = updated;
-                } else {
-                    wrap.remove();
-                }
-            });
+        // 悬停时在 body 上弹出固定定位的操作条，徽章自身尺寸保持不变
+        wrap.addEventListener('mouseenter', function () {
+            showFloatBar(wrap, username, label);
         });
-
-        var delBtn = document.createElement('button');
-        delBtn.className = 'ghrk-btn-tool delete';
-        delBtn.innerHTML = ICONS.DELETE;
-        delBtn.title = '删除备注';
-        delBtn.addEventListener('click', function (e) {
-            e.stopPropagation(); e.preventDefault();
-            if (confirm('确定要删除「' + username + '」的备注吗？')) {
-                delete _remarksCache[username.toLowerCase()];
-                StorageManager.deleteRemark(username);
-                refreshAllBadgesForUser(username, '');
-            }
+        wrap.addEventListener('mouseleave', function () {
+            scheduleHideFloatBar();
         });
-
-        tools.appendChild(editBtn);
-        tools.appendChild(delBtn);
-        wrap.appendChild(tools);
 
         return wrap;
     }
@@ -426,8 +523,12 @@
         var key = username.toLowerCase();
         var existingBadges = document.querySelectorAll('.github-remarks[data-ghrk-owner="' + key + '"]');
         if (!remark) {
+            hideFloatBar();
             existingBadges.forEach(function (b) { b.remove(); });
             if (_profileUser && _profileUser.toLowerCase() === key) {
+                // 清空个人主页容器后重建，避免残留空容器导致添加入口无法再次出现
+                var staleContainer = document.querySelector('.ghrk-profile-container');
+                if (staleContainer) staleContainer.remove();
                 renderProfileSection();
             }
         } else {
@@ -436,6 +537,8 @@
                 if (label) label.textContent = remark;
             });
             if (_profileUser && _profileUser.toLowerCase() === key) {
+                var oldContainer = document.querySelector('.ghrk-profile-container');
+                if (oldContainer) oldContainer.remove();
                 renderProfileSection();
             }
         }
@@ -503,6 +606,7 @@
     // 扫描页面中所有的用户链接并附加徽章或悬停快速添加按钮
     function scanAndAttachBadges() {
         if (!_isEnabled) {
+            hideFloatBar();
             document.querySelectorAll('.github-remarks, .ghrk-profile-container, .ghrk-inline-add-btn').forEach(function (e) {
                 e.remove();
             });
@@ -523,7 +627,7 @@
 
             // 2. 过滤：纯空内容或个人资料主容器内部
             var linkText = (link.textContent || '').trim();
-            if (!linkText || link.closest('.ghrk-profile-container') || link.classList.contains('ghrk-processed-link')) {
+            if (!linkText || link.closest('.ghrk-profile-container')) {
                 continue;
             }
 
@@ -539,6 +643,12 @@
             // 检查是否已经存在该用户的徽章或按钮
             var existingBadge = parent.querySelector('.github-remarks[data-ghrk-owner="' + key + '"]');
             var existingAddBtn = parent.querySelector('.ghrk-inline-add-btn[data-for-user="' + key + '"]');
+
+            // 自愈：仅当节点仍真实存在时才跳过；若 GitHub 局部重绘移除了我们的节点，则重新补挂
+            if (link.classList.contains('ghrk-processed-link') && (existingBadge || existingAddBtn)) {
+                continue;
+            }
+            link.classList.remove('ghrk-processed-link');
 
             if (remark) {
                 // 已有备注：移除临时添加按钮（如果有），挂载清晰徽章
@@ -622,6 +732,7 @@
                 scanAndAttachBadges();
             } else if (change.type === 'remarks') {
                 _remarksCache = change.data || {};
+                hideFloatBar();
                 document.querySelectorAll('.ghrk-processed-link').forEach(function (el) {
                     el.classList.remove('ghrk-processed-link');
                 });
@@ -657,6 +768,10 @@
             childList: true,
             subtree: true
         });
+
+        // 滚动与缩放时收起悬浮操作条，避免其位置与徽章错位
+        window.addEventListener('scroll', hideFloatBar, true);
+        window.addEventListener('resize', hideFloatBar);
 
         document.addEventListener('turbo:load', function () {
             document.querySelectorAll('.ghrk-processed-link').forEach(function (el) {

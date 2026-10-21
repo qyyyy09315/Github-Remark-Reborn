@@ -83,13 +83,22 @@ git clone https://github.com/qyyyy09315/Github-Remark-Reborn.git
 GithubRemarkReborn/
 ├── manifest.json        # 扩展配置清单 (Manifest V3, 声明式 content_scripts)
 ├── storage.js           # 统一存储引擎 (chrome.storage.sync 优先, 支持导入/导出/广播)
-├── ghremark.js          # 核心内容脚本 (高对比度样式、主页入口、悬停添加、Turbo单页适配)
+├── ghremark.js          # 核心内容脚本 (高对比度样式、主页入口、悬浮操作条、Turbo单页适配)
 ├── bg.js                # Background Service Worker (右键菜单、Badge 状态指示)
 ├── popup.html / .js     # 现代弹出卡片 (状态开关、数据统计、快捷添加)
 ├── options.html / .js   # 全功能控制仪表盘 (实时检索、就地修改、备份中心)
 ├── images/              # 扩展高清图标资源
+├── docs/                # 开发工作日志与发版指南
 └── server/              # (可选) 私有 Node.js + MongoDB 后端同步服务
 ```
+
+### 📚 项目文档
+
+| 文档 | 说明 |
+| :--- | :--- |
+| [CHANGELOG.md](CHANGELOG.md) | 版本更新说明，按 Keep a Changelog 规范维护 |
+| [docs/WORKLOG.md](docs/WORKLOG.md) | 开发工作日志：需求背景、关键决策、踩坑与验证结论 |
+| [docs/RELEASE_GUIDE.md](docs/RELEASE_GUIDE.md) | 发版流程、检查清单与更新说明模板 |
 
 ---
 
