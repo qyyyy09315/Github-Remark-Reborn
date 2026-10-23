@@ -28,6 +28,7 @@
     var _remarksCache = {};
     var _isEnabled = true;
     var _profileUser = null;
+    var _loginUser = null;
 
     // 注入高对比度、清晰利落的样式
     function injectStyles() {
@@ -301,6 +302,11 @@
         return meta ? meta.getAttribute('content') : null;
     }
 
+    // 判断是否为当前登录用户本人
+    function isSelfUser(username) {
+        return !!(_loginUser && username && username.toLowerCase() === _loginUser.toLowerCase());
+    }
+
     // 开启内联编辑
     function startInlineEditing(container, username, oldRemark, isProfile, onSaveCallback) {
         container.classList.add('ghrk-edit-mode');
@@ -553,7 +559,8 @@
     function renderProfileSection() {
         var username = detectProfileUsername();
         _profileUser = username;
-        if (!username || !_isEnabled) {
+        // 浏览自己的主页时不需要备注：不渲染任何组件，并清理历史遗留节点
+        if (!username || !_isEnabled || isSelfUser(username)) {
             var oldProfileEl = document.querySelector('.ghrk-profile-container');
             if (oldProfileEl) oldProfileEl.remove();
             return;
@@ -637,6 +644,19 @@
             var key = uname.toLowerCase();
             var remark = _remarksCache[key];
 
+            // 指向自己的链接：无需备注，不显示徽章或添加入口，并清理历史遗留节点
+            if (isSelfUser(uname)) {
+                var selfParent = link.parentNode;
+                if (selfParent) {
+                    var selfBadge = selfParent.querySelector('.github-remarks[data-ghrk-owner="' + key + '"]');
+                    if (selfBadge) selfBadge.remove();
+                    var selfAddBtn = selfParent.querySelector('.ghrk-inline-add-btn[data-for-user="' + key + '"]');
+                    if (selfAddBtn) selfAddBtn.remove();
+                }
+                link.classList.add('ghrk-processed-link');
+                continue;
+            }
+
             var parent = link.parentNode;
             if (!parent) continue;
 
@@ -715,6 +735,7 @@
     // 初始化
     function init() {
         injectStyles();
+        _loginUser = getLoggedInUser();
 
         Promise.all([
             StorageManager.getStatus(),
