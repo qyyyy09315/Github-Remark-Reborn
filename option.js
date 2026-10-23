@@ -47,7 +47,7 @@ document.addEventListener('DOMContentLoaded', function () {
             var tdUser = document.createElement('td');
             tdUser.innerHTML = [
                 '<div class="user-cell">',
-                '  <img class="avatar" src="https://github.com/' + escapeHtml(username) + '.png?size=48" alt="avatar" onerror="this.src=\'images/github.png\'">',
+                '  <img class="avatar" src="https://github.com/' + escapeHtml(username) + '.png?size=48" alt="avatar" onerror="this.src=\'images/icon-48.png\'">',
                 '  <a class="username-link" href="https://github.com/' + escapeHtml(username) + '" target="_blank">@' + escapeHtml(username) + '</a>',
                 '</div>'
             ].join('');
