@@ -44,19 +44,15 @@ git pull origin master
 node -c storage.js && node -c bg.js && node -c ghremark.js && node -c popup.js && node -c option.js
 node -e "JSON.parse(require('fs').readFileSync('manifest.json'))"
 
-# 3) 打包扩展（仅包含运行所需文件）
+# 3) 打包扩展（仅包含运行所需文件，供商店与 Release；server/docs/未引用图标一律排除）
 python -c "
 import zipfile, os
 name = 'GithubRemarkReborn-vX.Y.Z.zip'
-files = ['manifest.json','storage.js','ghremark.js','bg.js','popup.html','popup.js','options.html','option.js','README.md']
-dirs = ['images','server']
+files = ['manifest.json','storage.js','ghremark.js','bg.js','popup.html','popup.js','options.html','option.js',
+         'images/icon-16.png','images/icon-32.png','images/icon-48.png','images/icon-128.png']
 with zipfile.ZipFile(name,'w',zipfile.ZIP_DEFLATED) as z:
     for f in files:
-        if os.path.exists(f): z.write(f)
-    for d in dirs:
-        for root, _, fs in os.walk(d):
-            if 'node_modules' in root: continue
-            for f in fs: z.write(os.path.join(root,f))
+        z.write(f)
 "
 
 # 4) 提交版本变更

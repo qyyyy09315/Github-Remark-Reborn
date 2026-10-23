@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <title>GithubRemarkReborn 主图标（工具栏版，纯吊牌）</title>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0284C7"/>
+      <stop offset="1" stop-color="#1E40AF"/>
+    </linearGradient>
+  </defs>
+
+  <!-- 圆角方形底板 -->
+  <rect width="512" height="512" rx="112" fill="url(#bg)"/>
+
+  <!-- 白色吊牌（标签）剪影 -->
+  <path d="M150 160 H320 L420 256 L320 352 H150
+           A28 28 0 0 1 122 324 V188
+           A28 28 0 0 1 150 160 Z"
+        fill="#ffffff"/>
+
+  <!-- 标签圆孔：用底色渐变挖空 -->
+  <circle cx="354" cy="256" r="16" fill="url(#bg)"/>
+</svg>

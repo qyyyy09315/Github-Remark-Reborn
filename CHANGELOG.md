@@ -11,27 +11,30 @@
 
 ---
 
-## [Unreleased]
+## [1.1.0] - 2026-10-23
+
+聚焦「更稳的交互、更清晰的标识、更简单的存储」。
+
+### Added
+
+- **全新原创扩展图标**：深蓝渐变底 + 纯白吊牌，预乘 alpha 切出 16/32/48/128 四档与 300×300 商店 Logo，16px 下清晰可辨；不再使用 GitHub 官方标识，降低商店商标审核风险。
+- 新增 `docs/CHANGELOG.md` 配套的 `docs/ICON_DESIGN.md` 图标设计规格与 AI 绘画提示词。
+- 新增 `CHANGELOG.md`，按 Keep a Changelog 规范维护版本更新说明。
+- 新增 `docs/WORKLOG.md` 开发工作日志，记录需求、决策与验证过程。
+- 新增 `docs/RELEASE_GUIDE.md` 发版流程与更新说明模板，供后续版本发布使用。
 
 ### Fixed
 
-- **修复悬停备注徽章时徽章"消失"的问题**：原实现通过 `display: none → inline-flex` 在徽章内部展开 ✎/✕ 按钮，徽章宽度瞬间增大触发父容器重排，指针被挤出元素边界产生 `mouseleave`，随即收起又重新命中，形成肉眼可见的高频"展开—收起"抖动（表现为标签消失）。现改为挂载于 `document.body` 的固定定位悬浮操作条，徽章自身尺寸全程不变，并支持指针在徽章与操作条之间平滑移动（180ms 延迟收起）。
+- **修复悬停备注徽章时徽章"消失"的问题**：原实现通过 `display: none → inline-flex` 在徽章内部展开 ✎/✕ 按钮，徽章宽度瞬间增大触发父容器重排，指针被挤出产生 `mouseleave`，形成高频"展开—收起"抖动（表现为标签消失）。现改为挂载于 `document.body` 的固定定位悬浮操作条，徽章自身尺寸全程不变；操作条贴边自动翻转、滚动/缩放自动收起，指针在徽章与操作条间平滑移动（180ms 延迟收起）。
 - 移除徽章 `:hover` 状态下的 `translateY(-0.5px)` 微位移，避免亚像素位移导致的边缘命中抖动。
 - 增加节点自愈校验：当 GitHub 局部重绘（Turbo Frame、Hovercard 加载）移除徽章节点时，扫描会重新补挂，不再因 `ghrk-processed-link` 标记而永久跳过该用户。
 - 页面禁用插件、删除备注、滚动或缩放窗口时，悬浮操作条会自动收起，避免位置错位与悬空引用。
 
-### Added
-
-- 新增 `CHANGELOG.md`，按 Keep a Changelog 规范维护版本更新说明。
-- 新增 `docs/WORKLOG.md` 开发工作日志，记录需求、决策与验证过程。
-- 新增 `docs/RELEASE_GUIDE.md` 发版流程与更新说明模板，供后续版本发布使用。
-- 新增原创扩展图标 `images/icon-16/32/48/128.png` 与商店用 `images/store-logo-300.png`（深蓝渐变底 + 纯白吊牌，透明圆角外缘）。
-
 ### Changed
 
-- 扩展图标、弹窗与设置页 Logo、README 头图全部切换为原创图标，不再使用 GitHub 官方标识，降低商店商标审核风险。
 - **本人识别**：浏览自己的 GitHub 主页时不再渲染「+ 添加备注」入口或备注徽章；全站指向当前登录用户的链接同样不再挂载任何备注组件，并自动清理历史遗留节点（如此前给自己添加过的备注徽章）。
 - **存储引擎切换为纯本地**：由 `chrome.storage.sync`（优先）调整为 `chrome.storage.local`，备注数据仅保存在当前浏览器、不再经由浏览器账号跨设备同步。原 sync 方案受单键 8KB 配额限制，备注较多时写入会静默失败；本地方案配额约 10MB 且不依赖账号登录。首次读取时自动将旧版本存放在 sync 中的数据迁移到本地；多标签页实时联动不受影响，跨设备迁移改用控制台的 JSON 导出/导入。
+- 扩展图标、弹窗与设置页 Logo、README 头图全部切换为原创图标。
 
 ---
 
@@ -73,5 +76,6 @@
 
 ---
 
-[Unreleased]: https://github.com/qyyyy09315/Github-Remark-Reborn/compare/v1.0.0...HEAD
+[Unreleased]: https://github.com/qyyyy09315/Github-Remark-Reborn/compare/v1.1.0...HEAD
+[1.1.0]: https://github.com/qyyyy09315/Github-Remark-Reborn/releases/tag/v1.1.0
 [1.0.0]: https://github.com/qyyyy09315/Github-Remark-Reborn/releases/tag/v1.0.0
