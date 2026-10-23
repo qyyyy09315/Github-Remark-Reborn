@@ -1,7 +1,7 @@
 /**
  * GithubRemark 统一存储管理层
  * 兼容 Chrome 与 Microsoft Edge 原生扩展规范
- * 优先采用 chrome.storage.sync（跨设备云同步），超额或无网络时自动降级 local
+ * 纯本地存储：chrome.storage.local，数据不出设备；旧版本 sync 数据首次读取时自动迁移
  */
 (function (root, factory) {
     if (typeof module === 'object' && module.exports) {
@@ -22,7 +22,7 @@
 
     function getStorageArea() {
         if (!api) return null;
-        return api.storage.sync || api.storage.local;
+        return api.storage.local || null;
     }
 
     var StorageManager = {
@@ -57,6 +57,7 @@
         /**
          * 获取所有备注数据
          * 返回标准化字典: { [username]: string }
+         * 本地为空而 sync 存有旧版本数据时，执行一次性迁移
          */
         getAllRemarks: function () {
             return new Promise(function (resolve) {
@@ -65,17 +66,26 @@
                     return resolve({});
                 }
                 storage.get([KEY_REMARKS], function (res) {
-                    if (api.runtime.lastError || !res || !res[KEY_REMARKS]) {
-                        // 尝试从 local 兜底读取
-                        if (api.storage.local && storage !== api.storage.local) {
-                            api.storage.local.get([KEY_REMARKS], function (locRes) {
-                                resolve(StorageManager._normalizeRemarks(locRes && locRes[KEY_REMARKS]));
-                            });
-                            return;
-                        }
-                        return resolve({});
+                    if (api.runtime && api.runtime.lastError) { /* 读取失败视为空 */ }
+                    if (res && res[KEY_REMARKS]) {
+                        return resolve(StorageManager._normalizeRemarks(res[KEY_REMARKS]));
                     }
-                    resolve(StorageManager._normalizeRemarks(res[KEY_REMARKS]));
+                    // 一次性迁移：旧版本曾把数据存放在 chrome.storage.sync
+                    if (api.storage.sync) {
+                        api.storage.sync.get([KEY_REMARKS], function (syncRes) {
+                            if (api.runtime && api.runtime.lastError) { /* 忽略 */ }
+                            var legacy = syncRes && syncRes[KEY_REMARKS];
+                            if (legacy && Object.keys(legacy).length) {
+                                storage.set({ [KEY_REMARKS]: legacy }, function () {
+                                    resolve(StorageManager._normalizeRemarks(legacy));
+                                });
+                                return;
+                            }
+                            resolve({});
+                        });
+                        return;
+                    }
+                    resolve({});
                 });
             });
         },
@@ -116,7 +126,7 @@
         },
 
         /**
-         * 保存或更新用户备注
+         * 保存或更新用户备注（仅写本地存储）
          */
         setRemark: function (username, remark) {
             return new Promise(function (resolve) {
@@ -139,24 +149,8 @@
                         };
                     }
 
-                    var payload = { [KEY_REMARKS]: data };
-                    storage.set(payload, function () {
-                        if (api.runtime.lastError) {
-                            // 空间超额或 sync 失败时写入 local 兜底
-                            if (api.storage.local) {
-                                api.storage.local.set(payload, function () {
-                                    resolve(true);
-                                });
-                            } else {
-                                resolve(false);
-                            }
-                        } else {
-                            // 同步更新 local 保证双重可靠
-                            if (api.storage.local && storage !== api.storage.local) {
-                                api.storage.local.set(payload);
-                            }
-                            resolve(true);
-                        }
+                    storage.set({ [KEY_REMARKS]: data }, function () {
+                        resolve(!api.runtime.lastError);
                     });
                 });
             });
@@ -227,9 +221,6 @@
                         }
 
                         storage.set({ [KEY_REMARKS]: saveData }, function () {
-                            if (api.storage.local && storage !== api.storage.local) {
-                                api.storage.local.set({ [KEY_REMARKS]: saveData });
-                            }
                             resolve({ success: true, count: count });
                         });
                     });

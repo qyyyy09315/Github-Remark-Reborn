@@ -1,19 +1,19 @@
 <p align="center">
-  <img src="images/github_512.png" width="96" height="96" alt="GithubRemark Logo">
+  <img src="images/icon-128.png" width="96" height="96" alt="GithubRemark Logo">
 </p>
 
 <h1 align="center">GithubRemarkReborn</h1>
 
 <p align="center">
   <strong>给你的 GitHub 好友与开发者添加个性化备注，类似微信备注功能</strong><br>
-  全场景识别 · 现代高质感视觉 · 原生跨设备云同步 · 完美兼容 Microsoft Edge & Google Chrome
+  全场景识别 · 现代高质感视觉 · 纯本地隐私存储 · 完美兼容 Microsoft Edge & Google Chrome
 </p>
 
 <p align="center">
   <a href="https://github.com/qyyyy09315/Github-Remark-Reborn/releases/latest"><img src="https://img.shields.io/badge/Release-v1.0.0-blue.svg?style=flat-square" alt="Release"></a>
   <img src="https://img.shields.io/badge/Manifest-V3-success.svg?style=flat-square" alt="Manifest V3">
   <img src="https://img.shields.io/badge/Browser-Edge%20%7C%20Chrome-0078d7.svg?style=flat-square" alt="Edge and Chrome">
-  <img src="https://img.shields.io/badge/Sync-chrome.storage.sync-green.svg?style=flat-square" alt="Storage Sync">
+  <img src="https://img.shields.io/badge/Storage-chrome.storage.local-success.svg?style=flat-square" alt="Local Storage">
   <a href="https://github.com/qyyyy09315"><img src="https://img.shields.io/badge/Maintainer-@qyyyy09315-blueviolet.svg?style=flat-square" alt="Maintainer"></a>
   <img src="https://img.shields.io/badge/License-MIT-orange.svg?style=flat-square" alt="License">
 </p>
@@ -35,7 +35,7 @@
 | 🏷️ **个人主页常驻入口** | 访问任意用户的个人主页（Profile），昵称旁常驻大号备注徽章；未设置备注时，显示轻巧的「**+ 添加备注**」胶囊，随时为任何人添加第一条备注。 |
 | 📱 **全场景智能识别** | 自动识别并挂载全站用户链接：Following/Followers 关注列表、Issues 讨论区、PR 审查人、Commits 提交记录、Star 列表、组织成员等。 |
 | 🎨 **超清晰高对比度视觉** | 采用沉稳深邃的绀青色加粗文字（`#0c4a6e`，Bold 700）搭配透亮淡天蓝背景，对比度超越 WCAG AAA 标准，彻底杜绝模糊黑晕与字迹发白；自动适配 GitHub 浅色与深色模式。 |
-| ☁️ **原生跨设备免服同步** | 接入 `chrome.storage.sync` 原生引擎。只要登录浏览器账号（Edge 或 Google 账号），即可在多台设备间**自动无感同步**，无需部署服务器，零隐私泄露风险。 |
+| 🔒 **纯本地隐私存储** | 数据仅保存在当前浏览器的 `chrome.storage.local` 中，不上传任何服务器、不依赖账号登录；更换设备时通过 JSON 导出/导入一键迁移。 |
 | ⚡ **本地优先（Local-First）** | 内存 Map 0 毫秒极速查找，彻底消灭每个用户一次 HTTP 请求的 N+1 网络风暴，页面加载丝滑不卡顿。 |
 | 🔄 **多标签页即时联动** | 跨页面广播机制：在一个标签页或设置面板修改备注，其他所有已打开的 GitHub 页面无需刷新，秒级同步更新。 |
 | 💾 **完整数据备份中心** | 控制面板提供一键导出 `.json` 备份文件，并支持选择 JSON 备份一键恢复与合并。 |
@@ -82,7 +82,7 @@ git clone https://github.com/qyyyy09315/Github-Remark-Reborn.git
 ```text
 GithubRemarkReborn/
 ├── manifest.json        # 扩展配置清单 (Manifest V3, 声明式 content_scripts)
-├── storage.js           # 统一存储引擎 (chrome.storage.sync 优先, 支持导入/导出/广播)
+├── storage.js           # 统一存储引擎 (chrome.storage.local 纯本地, 支持导入/导出/广播)
 ├── ghremark.js          # 核心内容脚本 (高对比度样式、主页入口、悬浮操作条、Turbo单页适配)
 ├── bg.js                # Background Service Worker (右键菜单、Badge 状态指示)
 ├── popup.html / .js     # 现代弹出卡片 (状态开关、数据统计、快捷添加)
